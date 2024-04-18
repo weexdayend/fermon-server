@@ -33,7 +33,6 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         password: ${{ secrets.VPS_PASSWORD }}
         port: ${{ secrets.VPS_PORT }}
-        fingerprint: ${{ secrets.VPS_FINGERPRINT }}
         script: |
           docker compose -f ./docker-compose.yml pull
           docker compose -f ./docker-compose.yml up -d
