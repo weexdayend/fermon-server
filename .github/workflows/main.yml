@@ -34,5 +34,8 @@ jobs:
         password: ${{ secrets.VPS_PASSWORD }}
         port: ${{ secrets.VPS_PORT }}
         script: |
+          dir
+          la
+          ls
           docker compose -f ./docker-compose.yml pull
           docker compose -f ./docker-compose.yml up -d
