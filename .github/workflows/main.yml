@@ -26,6 +26,9 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/fermon-server:latest
 
+    - name: Debug SSH Private Key
+      run: echo "${{ secrets.SSH_PRIVATE_KEY }}"
+
     - name: SSH and deploy to VPS
       uses: appleboy/ssh-action@master
       with:
