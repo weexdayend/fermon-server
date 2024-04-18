@@ -19,28 +19,19 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
         
-    - name: Install SSH keys
-      run: |
-        install -m 600 -D /dev/null ~/.ssh/id_rsa
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-
-    - name: Test SSH connection
-      run: ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo Connected successfully"
-
+    - name: Install SSH client
+      run: sudo apt-get install -y openssh-client
+      
     - name: Build Docker image
       uses: docker/build-push-action@v2
       with:
         context: .
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/fermon-server:latest
-
+      
     - name: Connect and Pull
-      run: ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "docker compose pull && docker compose up -d && exit"
-    
-    - name: Cleanup
-      run: rm -rf ~/.ssh
+      run: |
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "docker compose pull && docker compose up -d && exit"
 
     # - name: SSH and deploy to VPS
     #   uses: appleboy/ssh-action@master
