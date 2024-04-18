@@ -27,11 +27,12 @@ jobs:
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/fermon-server:latest
 
     - name: SSH and deploy to VPS
-      uses: appleboy/ssh-action@master
+      uses: appleboy/drone-ssh
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 22
         script: |
-          docker-compose -f ./docker-compose.yml pull
-          docker-compose -f ./docker-compose.yml up -d
+          docker compose -f ./docker-compose.yml pull
+          docker compose -f ./docker-compose.yml up -d
