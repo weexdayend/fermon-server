@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "test:unit": "jest --ci --coverage --testLocationInResults --outputFile=report.json"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",

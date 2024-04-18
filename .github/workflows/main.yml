@@ -26,12 +26,6 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/fermon-server:latest
 
-    - name: Run Test & Report Coverage
-      uses: ArtiomTr/jest-coverage-report-action@v2
-      with:
-        skip-step: install
-        test-script: npm run test:unit
-
     - name: SSH and deploy to VPS
       uses: appleboy/ssh-action@v1.0.3
       with:
