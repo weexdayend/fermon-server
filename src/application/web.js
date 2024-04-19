@@ -6,6 +6,12 @@ import {errorMiddleware} from "../middleware/error-middleware.js";
 
 export const web = express();
 
+app.all('/', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "http://admin.synchronice.id");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    next();
+});
+
 web.use(cors(
     cors({
         origin: "https://admin.synchronice.id", // restrict calls to those this address
@@ -17,7 +23,7 @@ web.use(express.json());
 
 function socketConnectionRequest(req, res, next) {
     const headers = {
-        'Access-Control-Allow-Origin': '*', // To tell client, it is allowed to access this resource from any origin
+        'Access-Control-Allow-Origin': 'https://admin.synchronice.id', // To tell client, it is allowed to access this resource from any origin
         'Cache-Control': 'no-cache', // To tell client, it is not a cacheable response
         'Content-Type': 'text/event-stream', // To tell client, it is event stream
         'Connection': 'keep-alive', // To tell client, not to close connection
