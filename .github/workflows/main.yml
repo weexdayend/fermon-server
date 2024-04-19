@@ -39,8 +39,12 @@ jobs:
         password: ${{ secrets.VPS_PASSWORD }}
         port: ${{ secrets.VPS_PORT }}
         script: |
-          cd /var/www/fermon/server/
-          docker-compose -f ./docker-compose.yml pull
-          docker-compose -f ./docker-compose.yml build
-          docker-compose -f ./docker-compose.yml down
-          docker-compose -f ./docker-compose.yml up -d
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fermon-server:latest
+
+          if docker ps -a --format '{{.Names}}' | grep -q '^fermon-server$'; then
+            docker stop fermon-server
+            docker rm fermon-server
+          fi
+
+          docker system prune -f
+          docker run --name fermon-server -dit -p 4000:4000 ${{ secrets.DOCKERHUB_USERNAME }}/fermon-server:latest
