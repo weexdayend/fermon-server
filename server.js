@@ -3,7 +3,7 @@ const express = require("express");
 const app = express();
 
 app.use('/', (req, res) => {
-    res.send('This API using Workflows Action to Push and Deploy.');
+    res.send('This API using Workflows Action to Push and Deploya.');
 });
 
 app.listen(4000, () => {
