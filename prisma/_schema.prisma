@@ -1,0 +1,490 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// Users model
+model Users {
+    id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at               DateTime
+    updated_at               DateTime?
+    deleted_at               DateTime?
+    username                 String?
+    password                 String?
+    hakakses                 String?
+    status                   Boolean?
+    gudangs                  Gudangs[] // Perubahan penulisan "Gudangs" menjadi "gudangs" agar sesuai dengan konvensi casing Prisma
+    distributors             Distributors[]
+    Kios                     Kios[]
+    Tebus                    Tebus[]
+    Petugas                  Petugas[]
+    AlokasiPetugas           AlokasiPetugas[]
+    Salurs                   Salurs[]
+    BulanF5                  BulanF5[]
+    BulanF6                  BulanF6[]
+    Produsens                Produsens[]
+    MappingGudangDistributor MappingGudangDistributor[]
+    MappingDistributorKios   MappingDistributorKios[]
+
+    @@map("tbl_user")
+}
+
+// Gudangs model
+model Gudangs {
+    id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at               DateTime
+    updated_at               DateTime?
+    deleted_at               DateTime?
+    kodegudang               String?
+    gudang                   String?
+    longitude                String?
+    latitude                 String?
+    kode_provinsi            String?
+    provinsi                 String?
+    kode_kabupaten           String?
+    kabupaten                String?
+    kode_kecamatan           String?
+    kecamatan                String?
+    status                   String?
+    userid                   String                     @db.Uuid
+    user                     Users                      @relation(fields: [userid], references: [id]) // Perbaikan penulisan "id" menjadi "usersId" 
+    AlokasiPetugas           AlokasiPetugas[]
+    MappingGudangDistributor MappingGudangDistributor[]
+
+    @@map("tbl_gudang")
+}
+
+model Produsens {
+    id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at    DateTime
+    updated_at    DateTime?
+    deleted_at    DateTime?
+    kode_produsen String?
+    nama_produsen String?
+    status        String?
+    userid        String?   @db.Uuid
+    user          Users?    @relation(fields: [userid], references: [id]) // Perbaikan penulisan "id" menjadi "usersId"   
+
+    @@map("tbl_produsen")
+}
+
+// Distributors model
+model Distributors {
+    id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at               DateTime
+    updated_at               DateTime?
+    deleted_at               DateTime?
+    kode_distributor         BigInt?
+    nama_distributor         String?
+    longitude                String?
+    latitude                 String?
+    kode_provinsi            String?
+    provinsi                 String?
+    kode_kabupaten           String?
+    kabupaten                String?
+    kode_kecamatan           String?
+    kecamatan                String?
+    status                   String?
+    AlokasiPetugas           AlokasiPetugas[]
+    userid                   String?                    @db.Uuid
+    user                     Users?                     @relation(fields: [userid], references: [id])
+    MappingGudangDistributor MappingGudangDistributor[]
+    MappingDistributorKios   MappingDistributorKios[]
+
+    @@map("tbl_distributor")
+}
+
+// kios model
+model Kios {
+    id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at             DateTime
+    updated_at             DateTime?
+    deleted_at             DateTime?
+    kode_kios              String?
+    nama_kios              String?
+    longitude              String?
+    latitude               String?
+    kode_provinsi          String?
+    provinsi               String?
+    kode_kabupaten         String?
+    kabupaten              String?
+    kode_kecamatan         String?
+    kecamatan              String?
+    status                 String?
+    userid                 String?                  @db.Uuid
+    user                   Users?                   @relation(fields: [userid], references: [id])
+    AlokasiPetugas         AlokasiPetugas[]
+    MappingDistributorKios MappingDistributorKios[]
+
+    @@map("tbl_kios")
+}
+
+// petugas model 
+model Petugas {
+    id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at   DateTime? @db.Date()
+    updated_at   DateTime? @db.Date()
+    deleted_at   DateTime? @db.Date()
+    kode_petugas String?
+    nama_petugas String?
+    contact      String?
+    contact_wa   String?
+    jabatan      String?
+    status       String?
+    userid       String    @db.Uuid
+    user         Users     @relation(fields: [userid], references: [id])
+
+    @@map("tbl_petugas")
+}
+
+model MappingGudangDistributor {
+    id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at       DateTime?     @db.Date()
+    updated_at       DateTime?     @db.Date()
+    deleted_at       DateTime?     @db.Date()
+    id_gudang        String?
+    kode_gudang      String?
+    nama_gudang      String?
+    id_distributor   String?
+    kode_distributor String?
+    nama_distributor String?
+    kode_provinsi    String?
+    provinsi         String?
+    kode_kabupaten   String?
+    kabupaten        String?
+    kode_kecamatan   String?
+    kecamatan        String?
+    status           String?
+    userid           String        @db.Uuid
+    user             Users         @relation(fields: [userid], references: [id])
+    Gudang           Gudangs?      @relation(fields: [id_gudang], references: [id])
+    Distributor      Distributors? @relation(fields: [id_distributor], references: [id])
+
+    @@map("tbl_mapping_gudang_distributor")
+}
+
+model MappingDistributorKios {
+    id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at       DateTime?     @db.Date()
+    updated_at       DateTime?     @db.Date()
+    deleted_at       DateTime?     @db.Date()
+    id_distributor   String?
+    kode_distributor String?
+    nama_distributor String?
+    id_kios          String?
+    kode_kios        String?
+    nama_kios        String?
+    kode_provinsi    String?
+    provinsi         String?
+    kode_kabupaten   String?
+    kabupaten        String?
+    kode_kecamatan   String?
+    kecamatan        String?
+    status           String?
+    userid           String        @db.Uuid
+    user             Users         @relation(fields: [userid], references: [id])
+    Distributor      Distributors? @relation(fields: [id_distributor], references: [id])
+    Kios             Kios?         @relation(fields: [id_kios], references: [id])
+
+    @@map("tbl_mapping_distributor_kios")
+}
+
+// alokasi petugas model
+model AlokasiPetugas {
+    id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at       DateTime?     @db.Date()
+    updated_at       DateTime?     @db.Date()
+    deleted_at       DateTime?     @db.Date()
+    kode_lokasi      String?
+    id_petugas       String?       @db.Uuid
+    id_gudang        String?       @db.Uuid
+    kode_gudang      String?
+    id_distributor   String?       @db.Uuid
+    kode_distributor String?
+    id_kios          String?       @db.Uuid
+    kode_kios        String?
+    status           String?
+    userid           String        @db.Uuid
+    user             Users         @relation(fields: [userid], references: [id])
+    gudang           Gudangs?      @relation(fields: [id_gudang], references: [id])
+    distributor      Distributors? @relation(fields: [id_distributor], references: [id])
+    kios             Kios?         @relation(fields: [id_kios], references: [id])
+
+    @@map("tbl_alokasi_petugas")
+}
+
+// tebus model
+model Tebus {
+    id                        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at                DateTime? @db.Date()
+    updated_at                DateTime? @db.Date()
+    deleted_at                DateTime? @db.Date()
+    nomor_sales_order         String?
+    so_item                   String?
+    contact                   String?
+    sales_organization        String?
+    distribution_chanel       String?
+    division                  String?
+    sales_office              String?
+    dekripsi_sales_office     String?
+    sales_group               String?
+    deskripsi_sales_group     String?
+    so_legacy                 String?
+    kode_kecamatan            String?
+    kecamatan_so              String?
+    provinsi_distributor      String?
+    kabupaten_distributor     String?
+    kode_distributor          String?
+    nama_distributor          String?
+    end_user_pengecer         String?
+    provinsi_tujuan           String?
+    deskripsi_provinsi_tujuan String?
+    negara_tujuan             String?
+    deskripsi_negara_tujuan   String?
+    nomor_kontrak             String?
+    tgl_mulai_kontrak         String?
+    tgl_akhir_kontrak         String?
+    tgl_so_dibuat             String?
+    tgl_dokumen               String?
+    tgl_so_released           String?
+    payment_term              String?
+    payment_method            String?
+    nomor_material            String?
+    deskripsi_material        String?
+    material_group            String?
+    alokasi_awal              String?
+    alokasi_operasional       String?
+    quantity_so               String?
+    unit_of_measure           String?
+    mata_uang                 String?
+    harga_jual_exc_ppn        String?
+    ppn                       String?
+    total                     String?
+    harga_ton_incl_ppn        String?
+    nomor_do                  String?
+    tanggal_pgi               String?
+    plant_so                  String?
+    gudang_so                 String?
+    gudang_so_deskripsi       String?
+    kode_gudang               String?
+    gudang_pengambilan        String?
+    quantity_do               String?
+    quantity_so_do            String?
+    status_so                 String?
+    remarks                   String?
+    bl_number                 String?
+    nomor_spe                 String?
+    sisa_spe                  String?
+    pgi_qty                   String?
+    total_harga_tonase_pgi    String?
+    outstanding_so            String?
+    so_type                   String?
+    so_type_deskripsi         String?
+    provinsi_gudang           String?
+    kabupaten_gudang          String?
+    kode_payment_term         String?
+    kode_payment_method       String?
+    batas_akhir_pengambilan   String?
+    no_po                     String?
+    tanggal_po                String?
+    so_created_by             String?
+    ext_finance_doc_no        String?
+    opening_date              String?
+    latest_shipment_date      String?
+    expiry_date               String?
+    opening_bank_key          String?
+    description               String?
+    sektor                    String?
+    no_billing                String?
+    billing_date              String?
+    incoterm_1                String?
+    incoterm_2                String?
+    billing_quantity          String?
+    billing_net               String?
+    billing_tax               String?
+    pod_status                String?
+    pod_status_desc           String?
+    finance_doc_number        String?
+    port_of_discharge         String?
+    port_of_loading           String?
+    produk                    String?
+    bulan                     String?
+    kecamatan                 String?
+    userid                    String    @db.Uuid
+    user                      Users     @relation(fields: [userid], references: [id])
+
+    @@map("datawarehouse_report_tebus")
+}
+
+// salur model
+model Salurs {
+    id                            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at                    DateTime? @db.Date()
+    updated_at                    DateTime? @db.Date()
+    deleted_at                    DateTime? @db.Date()
+    nomor_do                      String?
+    nomor_sales_order             String?
+    delivery_item                 String?
+    contact                       String?
+    nomor_material                String?
+    desc_material                 String?
+    material_group                String?
+    sales_organization            String?
+    distribution_channel          String?
+    division                      String?
+    sales_office                  String?
+    desc_sales_office             String?
+    sales_group                   String?
+    desc_sales_group              String?
+    so_legacy                     String?
+    kodekec_so                    String?
+    kecamatan_so                  String?
+    kodedist                      String?
+    nama_distributor              String?
+    provinsi_distributor          String?
+    kabupaten_distributor         String?
+    provinsi_tujuan               String?
+    desc_provinsi_tujuan          String?
+    negara_tujuan                 String?
+    desc_negara_tujuan            String?
+    nomor_kontrak                 String?
+    tgl_mulai_kontrak             String?
+    tgl_akhir_kontrak             String?
+    tgl_so_dibuat                 String?
+    tgl_so_released               String?
+    kode_payment_term             String?
+    payment_term                  String?
+    kode_payment_method           String?
+    payment_method                String?
+    batas_akhir_pengambilan       String?
+    quantity_so                   String?
+    unit_of_measure               String?
+    kode_gudang                   String?
+    gudang_pengambilan            String?
+    quantity_do                   String?
+    tgl_dukumen_do                String?
+    tgl_pgi                       String?
+    good_issue_status             String?
+    pgi_qty                       String?
+    sektor                        String?
+    no_billing                    String?
+    billing_date                  String?
+    status_do                     String?
+    status_so                     String?
+    alat_angkut                   String?
+    nomor_identitas_alat_angkut   String?
+    eta                           String?
+    pengemudi                     String?
+    remarks                       String?
+    bl_number                     String?
+    nomor_spe                     String?
+    sisa_spe                      Float?
+    so_type                       String?
+    so_type_desc                  String?
+    do_type                       String?
+    do_type_desc                  String?
+    provinsi_gudang               String?
+    kabupaten_gudang              String?
+    end_user_pengecer             String?
+    no_po                         String?
+    tgl_po                        String?
+    so_created_by                 String?
+    do_created_by                 String?
+    penerima                      String?
+    pod_status                    String?
+    pod_desc                      String?
+    incoterm_1                    String?
+    incoterm_2                    String?
+    shipment_planning_status      String?
+    shipment_planning_status_desc String?
+    pod_date                      String?
+    mata_uang                     String?
+    billing_quantity              Int?
+    billing_net                   Float?
+    billing_tax                   Float?
+    tgl_last_chg_do               String?
+    alokasi_op_spjb               String?
+    produk                        String?
+    bulan                         String?
+    kecamatan                     String?
+    userid                        String    @db.Uuid
+    user                          Users     @relation(fields: [userid], references: [id])
+
+    @@map("datawarehouse_report_salur")
+}
+
+// BulanF5 model
+model BulanF5 {
+    id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at       DateTime
+    updated_at       DateTime?
+    deleted_at       DateTime?
+    kode_produsen    String
+    produsen         String
+    nomor_f5         String
+    kode_distributor BigInt
+    nama_distributor String
+    tahun            BigInt
+    bulan            Int
+    kode_provinsi    BigInt
+    provinsi         String
+    kode_kabupaten   BigInt
+    kabupaten        String
+    status           String
+    kode_produk      String
+    produk           String
+    stok_awal        String
+    penebusan        String
+    penyaluran       String
+    stok_akhir       String
+    keterangan       String?
+
+    userid String? @db.Uuid
+    user   Users?  @relation(fields: [userid], references: [id])
+
+    @@map("datawarehouse_report_f5")
+}
+
+// BulanF6 model
+model BulanF6 {
+    id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    created_at       DateTime
+    updated_at       DateTime?
+    deleted_at       DateTime?
+    produsen         String
+    nomor            String
+    kode_distributor BigInt
+    nama_distributor String
+    kode_provinsi    BigInt
+    nama_provinsi    String
+    kode_kabupaten   BigInt
+    nama_kabupaten   String
+    kode_kecamatan   String
+    nama_kecamatan   String
+    bulan            Int
+    tahun            BigInt
+    kode_pengecer    String
+    nama_pengecer    String
+    produk           String
+    stok_awal        String
+    penebusan        String
+    penyaluran       String
+    stok_akhir       String
+    status           String
+    keterangan       String?
+
+    userid String? @db.Uuid
+    user   Users?  @relation(fields: [userid], references: [id])
+
+    @@map("datawarehouse_report_f6")
+}

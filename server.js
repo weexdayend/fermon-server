@@ -1,11 +1,6 @@
-const express = require("express");
+import {web} from "./src/application/js";
+import {logger} from "./src/application/logging.js";
 
-const app = express();
-
-app.use('/', (req, res) => {
-    res.send('This API using Workflows Action to Push and Deploya.');
-});
-
-app.listen(4000, () => {
-    console.log('Server fermon is running on Port 4000!');
+web.listen(3000, () => {
+    logger.info("App start");
 });
