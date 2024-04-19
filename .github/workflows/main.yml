@@ -20,6 +20,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Install ESLint
+        run: npm install eslint --save-dev
+
       - name: Run Lint
         run: npm run lint
 
@@ -28,7 +31,7 @@ jobs:
         with:
           skip-step: install
           test-script: npm run test:unit
-          
+
   build-and-deploy:
     runs-on: ubuntu-latest
 
