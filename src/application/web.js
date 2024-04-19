@@ -6,7 +6,7 @@ import {errorMiddleware} from "../middleware/error-middleware.js";
 
 export const web = express();
 
-app.all('/', function(req, res, next) {
+web.all('/', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "http://admin.synchronice.id");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
     next();
