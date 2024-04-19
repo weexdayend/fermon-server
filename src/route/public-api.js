@@ -93,11 +93,15 @@ function publishMessageToConnectedSockets(data) {
 }
 
 publicRouter.get('/socket-connection-request', socketConnectionRequest);
-publicRouter.post('/send-message-to-client', (req, res, next) => {
-  const message = req.body.message;
+// publicRouter.post('/send-message-to-client', (req, res, next) => {
+//   const message = req.body.message;
 
-  publishMessageToConnectedSockets('Sukses Brother!');
-  res.status(200).json({ status: 'success', message: message });
+//   publishMessageToConnectedSockets(message);
+//   res.status(200).json({ status: 'success', message: message });
+// });
+publicRouter.get('/send-message-to-client', (req, res, next) => {
+    publishMessageToConnectedSockets(`Sukses terus Saptakarya at ${new Date()}`)
+    res.sendStatus(200)
 });
 
 export {
