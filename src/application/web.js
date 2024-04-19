@@ -6,7 +6,15 @@ import {errorMiddleware} from "../middleware/error-middleware.js";
 
 export const web = express();
 
-web.use(cors());
+// Define CORS options
+const corsOptions = {
+    origin: "*", // Replace with your Next.js app's domain
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true, // Enable cookies from the client-side
+    optionsSuccessStatus: 204,
+};
+  
+web.use(cors(corsOptions));
 
 web.use(express.json());
 
