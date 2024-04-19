@@ -9,6 +9,11 @@ import hargapupuk from "../controller/hargapupuk-controller.js";
 import alokasi from "../controller/alokasi-controller.js"; 
 import wilayah from "../controller/wilayah-controller.js"; 
 import multer from "multer";
+
+import { 
+    publishMessageToConnectedSockets, 
+    socketConnectionRequest 
+} from "../socket/socket.js";
  
 const uploads = multer({ dest: 'uploads/' });
 const uploadscsv = multer({ dest: 'uploads/csv/' });
@@ -74,6 +79,48 @@ publicRouter.get('/api/wilayah/all', wilayah.getall);
 publicRouter.put('/api/wilayah', wilayah.update);
 publicRouter.delete('/api/wilayah', wilayah.remove);
 publicRouter.get('/api/wilayah/search', wilayah.search); 
+
+publicRouter.post('/upload', upload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+    }
+  
+    const startTime = Date.now();
+    const pythonScript = spawn('python', [path.join(__dirname, 'socket/import-data.py'), req.file.path]);
+  
+    let totalBatches = 0;
+    let totalRows = 0;
+  
+    pythonScript.stdout.on('data', (data) => {
+        const response = data.toString();
+        const matches = response.match(/Total batches successfully inserted: (\d+)\nTotal rows: (\d+)/);
+    
+        console.log(`stdout: ${matches}`);
+    });
+  
+    pythonScript.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+  
+    pythonScript.on('close', (code) => {
+        if (code === 0) {
+            const endTime = Date.now();
+            const elapsedTime = (endTime - startTime) / 1000; // Convert milliseconds to seconds
+            res.write(`data: ${JSON.stringify({ message: 'File uploaded and data imported successfully.', elapsedTime, totalBatches, totalRows })}\n\n`);
+            res.end();
+        } else {
+            res.status(500).send('Error importing data into PostgreSQL.');
+        }
+    });
+});
+
+publicRouter.get('/socket-connection-request', socketConnectionRequest);
+publicRouter.post('/send-message-to-client', (req, res, next) => {
+  const message = req.body.message;
+
+  publishMessageToConnectedSockets(message);
+  res.status(200).json({ status: 'success', message: message });
+});
 
 export {
     publicRouter
