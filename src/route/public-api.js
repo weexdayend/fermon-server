@@ -93,19 +93,20 @@ function publishMessageToConnectedSockets(data) {
     socket.write(`data: ${data}\n`);
 }
 
-publicRouter.get('/socket-connection-request', socketConnectionRequest);
-// publicRouter.post('/send-message-to-client', (req, res, next) => {
-//   const message = req.body.message;
-
-//   publishMessageToConnectedSockets(message);
-//   res.status(200).json({ status: 'success', message: message });
-// });
 export const corsOptions = {
     origin: "https://admin.synchronice.id",
     optionsSuccessStatus: 200,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     allowedHeaders: "Content-Type, Authorization",
 };
+
+publicRouter.get('/socket-connection-request', cors(corsOptions), socketConnectionRequest);
+// publicRouter.post('/send-message-to-client', (req, res, next) => {
+//   const message = req.body.message;
+
+//   publishMessageToConnectedSockets(message);
+//   res.status(200).json({ status: 'success', message: message });
+// });
 publicRouter.options('/socket-connection-request', cors(corsOptions));
 publicRouter.get('/send-message-to-client', (req, res, next) => {
     publishMessageToConnectedSockets(`Sukses terus Saptakarya at ${new Date()}`)
