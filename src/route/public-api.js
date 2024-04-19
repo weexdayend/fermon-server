@@ -9,7 +9,6 @@ import hargapupuk from "../controller/hargapupuk-controller.js";
 import alokasi from "../controller/alokasi-controller.js"; 
 import wilayah from "../controller/wilayah-controller.js"; 
 import multer from "multer";
-import cors from "cors";
  
 const uploads = multer({ dest: 'uploads/' });
 const uploadscsv = multer({ dest: 'uploads/csv/' });
@@ -93,21 +92,13 @@ function publishMessageToConnectedSockets(data) {
     socket.write(`data: ${data}\n`);
 }
 
-export const corsOptions = {
-    origin: "https://admin.synchronice.id",
-    optionsSuccessStatus: 200,
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    allowedHeaders: "Content-Type, Authorization",
-};
-
-publicRouter.get('/socket-connection-request', cors(corsOptions), socketConnectionRequest);
+publicRouter.get('/socket-connection-request', socketConnectionRequest);
 // publicRouter.post('/send-message-to-client', (req, res, next) => {
 //   const message = req.body.message;
 
 //   publishMessageToConnectedSockets(message);
 //   res.status(200).json({ status: 'success', message: message });
 // });
-publicRouter.options('/socket-connection-request', cors(corsOptions));
 publicRouter.post('/send-message-to-client', (req, res, next) => {
     publishMessageToConnectedSockets(`Sukses terus Saptakarya at ${new Date()}`)
     res.sendStatus(200)
