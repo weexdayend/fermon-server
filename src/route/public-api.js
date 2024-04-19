@@ -9,6 +9,7 @@ import hargapupuk from "../controller/hargapupuk-controller.js";
 import alokasi from "../controller/alokasi-controller.js"; 
 import wilayah from "../controller/wilayah-controller.js"; 
 import multer from "multer";
+import cors from "cors";
  
 const uploads = multer({ dest: 'uploads/' });
 const uploadscsv = multer({ dest: 'uploads/csv/' });
