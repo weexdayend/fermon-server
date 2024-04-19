@@ -9,11 +9,6 @@ import hargapupuk from "../controller/hargapupuk-controller.js";
 import alokasi from "../controller/alokasi-controller.js"; 
 import wilayah from "../controller/wilayah-controller.js"; 
 import multer from "multer";
-
-import { 
-    publishMessageToConnectedSockets, 
-    socketConnectionRequest 
-} from "../socket/socket.js";
  
 const uploads = multer({ dest: 'uploads/' });
 const uploadscsv = multer({ dest: 'uploads/csv/' });
@@ -80,39 +75,22 @@ publicRouter.put('/api/wilayah', wilayah.update);
 publicRouter.delete('/api/wilayah', wilayah.remove);
 publicRouter.get('/api/wilayah/search', wilayah.search); 
 
-publicRouter.post('/upload', upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).send('No file uploaded.');
-    }
-  
-    const startTime = Date.now();
-    const pythonScript = spawn('python', [path.join(__dirname, 'socket/import-data.py'), req.file.path]);
-  
-    let totalBatches = 0;
-    let totalRows = 0;
-  
-    pythonScript.stdout.on('data', (data) => {
-        const response = data.toString();
-        const matches = response.match(/Total batches successfully inserted: (\d+)\nTotal rows: (\d+)/);
-    
-        console.log(`stdout: ${matches}`);
-    });
-  
-    pythonScript.stderr.on('data', (data) => {
-        console.error(`stderr: ${data}`);
-    });
-  
-    pythonScript.on('close', (code) => {
-        if (code === 0) {
-            const endTime = Date.now();
-            const elapsedTime = (endTime - startTime) / 1000; // Convert milliseconds to seconds
-            res.write(`data: ${JSON.stringify({ message: 'File uploaded and data imported successfully.', elapsedTime, totalBatches, totalRows })}\n\n`);
-            res.end();
-        } else {
-            res.status(500).send('Error importing data into PostgreSQL.');
-        }
-    });
-});
+function socketConnectionRequest(req, res, next) {
+    const headers = {
+        'Access-Control-Allow-Origin': '*', // To tell client, it is allowed to access this resource from any origin
+        'Cache-Control': 'no-cache', // To tell client, it is not a cacheable response
+        'Content-Type': 'text/event-stream', // To tell client, it is event stream
+        'Connection': 'keep-alive', // To tell client, not to close connection
+    };
+    res.writeHead(200, headers);
+    res.write('data: Connection Established, We\'ll now start receiving messages from the server.\n')
+    socket = res
+    console.log('New connection established')
+}
+
+function publishMessageToConnectedSockets(data) {
+    socket.write(`data: ${data}\n`);
+}
 
 publicRouter.get('/socket-connection-request', socketConnectionRequest);
 publicRouter.post('/send-message-to-client', (req, res, next) => {
