@@ -6,16 +6,10 @@ import {errorMiddleware} from "../middleware/error-middleware.js";
 
 export const web = express();
 
-web.all('/', function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "http://admin.synchronice.id");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
-    next();
-});
-
 web.use(cors(
     cors({
         origin: "https://admin.synchronice.id", // restrict calls to those this address
-        methods: "GET" // only allow GET requests
+        methods: "*" // only allow GET requests
     })
 ));
 

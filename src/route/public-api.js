@@ -102,7 +102,9 @@ publicRouter.get('/status-server', (req, res) => {
         "status": "Server is running."
     }
 
-    res.send(status);
+    res.status(200).json({
+        status
+    });
 })
 publicRouter.get('/socket-connection-request', socketConnectionRequest);
 publicRouter.get('/send-message-to-client', (req, res, next) => {
