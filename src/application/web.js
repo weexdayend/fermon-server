@@ -6,23 +6,41 @@ import {errorMiddleware} from "../middleware/error-middleware.js";
 
 export const web = express();
 
-export const corsOptions = {
-    origin: "https://admin.synchronice.id",
-    optionsSuccessStatus: 200,
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    allowedHeaders: "Content-Type, Authorization",
-};
+web.use(cors());
 
-web.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', 'https://admin.synchronice.id');
-    res.setHeader('Access-Control-Allow-Methods', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+web.use(express.json());
+
+web.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "https://admin.synchronice.id");
+    res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept"
+    );
     next();
 });
 
-web.use(cors(corsOptions));
+function socketConnectionRequest(req, res, next) {
+    const headers = {
+        'Access-Control-Allow-Origin': 'https://admin.synchronice.id', // To tell client, it is allowed to access this resource from any origin
+        'Cache-Control': 'no-cache', // To tell client, it is not a cacheable response
+        'Content-Type': 'text/event-stream', // To tell client, it is event stream
+        'Connection': 'keep-alive', // To tell client, not to close connection
+    };
+    res.writeHead(200, headers);
+    res.write('data: Connection Established, We\'ll now start receiving messages from the server.\n')
+    socket = res
+    console.log('New connection established')
+}
 
-web.use(express.json());
+function publishMessageToConnectedSockets(data) {
+    socket.write(`data: ${data}\n`);
+}
+
+web.get('/socket-connection-request', socketConnectionRequest);
+web.post('/send-message-to-client', (req, res, next) => {
+    publishMessageToConnectedSockets(`Sukses terus Saptakarya at ${new Date()}`)
+    res.sendStatus(200)
+});
 
 web.use(publicRouter); 
 
