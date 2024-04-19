@@ -8,7 +8,7 @@ export const web = express();
 
 // Define CORS options
 const corsOptions = {
-    origin: "*",
+    origin: "https://admin.synchronice.id/",
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
     optionsSuccessStatus: 204,
