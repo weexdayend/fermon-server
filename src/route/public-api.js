@@ -90,10 +90,6 @@ function socketConnectionRequest(req, res, next) {
 }
 
 function publishMessageToConnectedSockets(data) {
-    const headers = {
-        'Access-Control-Allow-Origin': 'https://admin.synchronice.id', // To tell client, it is allowed to access this resource from any origin
-    };
-    res.writeHead(200, headers);
     socket.write(`data: ${data}\n`);
 }
 
@@ -109,7 +105,7 @@ publicRouter.get('/status-server', (req, res) => {
 publicRouter.get('/socket-connection-request', socketConnectionRequest);
 publicRouter.get('/send-message-to-client', (req, res, next) => {
     publishMessageToConnectedSockets(`Sukses terus Saptakarya at ${new Date()}`)
-    res.sendStatus(200)
+    res.status(200)
 });
 
 export {
