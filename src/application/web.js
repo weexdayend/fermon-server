@@ -6,12 +6,11 @@ import {errorMiddleware} from "../middleware/error-middleware.js";
 
 export const web = express();
 
-// Define CORS options
-const corsOptions = {
-    origin: "https://admin.synchronice.id/",
+export const corsOptions = {
+    origin: "https://admin.synchronice.id",
+    optionsSuccessStatus: 200,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    credentials: true,
-    optionsSuccessStatus: 204,
+    allowedHeaders: "Content-Type, Authorization",
 };
 
 web.use(cors(corsOptions));
