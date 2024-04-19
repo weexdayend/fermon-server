@@ -8,7 +8,7 @@ export const web = express();
 
 // Define CORS options
 const corsOptions = {
-    origin: "*", // Replace with your Next.js app's domain
+    origin: "http://10.128.206.74:8224", // Replace with your Next.js app's domain
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true, // Enable cookies from the client-side
     optionsSuccessStatus: 204,
