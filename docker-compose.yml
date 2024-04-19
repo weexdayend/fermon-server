@@ -4,3 +4,5 @@ services:
     image: haigerhana/fermon-server:latest
     ports:
       - "4000:4000"
+    env_file:
+      - .env
