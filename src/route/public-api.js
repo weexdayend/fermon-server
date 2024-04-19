@@ -108,7 +108,7 @@ publicRouter.get('/socket-connection-request', cors(corsOptions), socketConnecti
 //   res.status(200).json({ status: 'success', message: message });
 // });
 publicRouter.options('/socket-connection-request', cors(corsOptions));
-publicRouter.get('/send-message-to-client', (req, res, next) => {
+publicRouter.post('/send-message-to-client', (req, res, next) => {
     publishMessageToConnectedSockets(`Sukses terus Saptakarya at ${new Date()}`)
     res.sendStatus(200)
 });
