@@ -96,7 +96,7 @@ publicRouter.get('/socket-connection-request', socketConnectionRequest);
 publicRouter.post('/send-message-to-client', (req, res, next) => {
   const message = req.body.message;
 
-  publishMessageToConnectedSockets(message);
+  publishMessageToConnectedSockets('Sukses Brother!');
   res.status(200).json({ status: 'success', message: message });
 });
 
