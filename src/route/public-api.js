@@ -36,8 +36,8 @@ const upload = multer({
 });
 
 // Increase the request size limit
-app.use(bodyParser.json({ limit: '100mb' }));
-app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
+publicRouter.use(bodyParser.json({ limit: '100mb' }));
+publicRouter.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 
 publicRouter.post('/api/upload', uploads.single('file'), uploadfile.upload); 
 // publicRouter.post('/api/upload/harian/tebus', uploads.single('file'), uploadfile.uploadtebus); 
@@ -100,7 +100,7 @@ publicRouter.put('/api/wilayah', wilayah.update);
 publicRouter.delete('/api/wilayah', wilayah.remove);
 publicRouter.get('/api/wilayah/search', wilayah.search);
 
-app.post('/upload-file', cors(corsOptions), upload.single('file'), (req, res) => {
+publicRouter.post('/upload-file', cors(corsOptions), upload.single('file'), (req, res) => {
     try {
       if (!req.file || !req.body.tabIdentifier) {
         return res.status(400).json({ message: 'No file or tab identifier uploaded.' });
