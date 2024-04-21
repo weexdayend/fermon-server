@@ -17,5 +17,5 @@ web.use(bodyParser.json({ limit: '100mb' }));
 web.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 
 web.listen(4000, () => {
-    logger.info("App start");
+    logger.info("Starting Fermon Server!");
 });
