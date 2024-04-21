@@ -4,6 +4,6 @@ services:
   app:
     image: haigerhana/fermon-server
     ports:
-      - "4000:4000"
+      - "4455:4455"
     env_file:
       - .env

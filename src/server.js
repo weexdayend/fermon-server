@@ -11,8 +11,8 @@ const corsOptions = {
 web.use(cors(corsOptions))
 
 // Increase the request size limit
-app.use(bodyParser.json({ limit: '100mb' }));
-app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
+web.use(bodyParser.json({ limit: '100mb' }));
+web.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 
 web.listen(4455, () => {
     logger.info("App start");

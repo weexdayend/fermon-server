@@ -7,11 +7,16 @@ import cors from "cors";
 
 export const web = express();
 
-web.use(cors());
+const corsOptions = {
+    origin: 'https://admin.synchronice.id',
+    optionsSuccessStatus: 200
+};
 
-web.use(express.json());
+web.use(cors(corsOptions))
 
-web.use(express.urlencoded({ extended: true }));
+// Increase the request size limit
+web.use(bodyParser.json({ limit: '100mb' }));
+web.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 
 web.use(publicRouter); 
 
