@@ -3,6 +3,8 @@ import express from "express";
 import {publicRouter} from "../route/public-api.js";
 import {errorMiddleware} from "../middleware/error-middleware.js";
 
+import bodyParser from 'body-parser'
+
 import cors from "cors";
 
 export const web = express();

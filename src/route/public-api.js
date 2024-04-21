@@ -8,6 +8,8 @@ import cors from "cors";
 
 import { __dirname } from "../dirname.js";
 
+import bodyParser from 'body-parser'
+
 import uploadfile from "../controller/uploadfile-controller.js"; 
 import profile from "../controller/profile-controller.js"; 
 import mappingprofile from "../controller/mappingprofile-controller.js"; 

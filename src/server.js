@@ -1,6 +1,8 @@
 import {web} from "./application/web.js";
 import {logger} from "./application/logging.js";
 
+import bodyParser from 'body-parser'
+
 import cors from "cors";
 
 const corsOptions = {
@@ -14,6 +16,6 @@ web.use(cors(corsOptions))
 web.use(bodyParser.json({ limit: '100mb' }));
 web.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 
-web.listen(4455, () => {
+web.listen(4000, () => {
     logger.info("App start");
 });
