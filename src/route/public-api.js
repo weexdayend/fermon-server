@@ -1,4 +1,13 @@
 import express from "express";
+import multer from "multer";
+
+import fs from 'fs';
+import path from 'path';
+
+import cors from "cors";
+
+import { __dirname } from "../dirname.js";
+
 import uploadfile from "../controller/uploadfile-controller.js"; 
 import profile from "../controller/profile-controller.js"; 
 import mappingprofile from "../controller/mappingprofile-controller.js"; 
@@ -8,12 +17,28 @@ import mappingpetugas from "../controller/mappingpetugas-controller.js";
 import hargapupuk from "../controller/hargapupuk-controller.js"; 
 import alokasi from "../controller/alokasi-controller.js"; 
 import wilayah from "../controller/wilayah-controller.js"; 
-import multer from "multer";
- 
+
 const uploads = multer({ dest: 'uploads/' });
 const uploadscsv = multer({ dest: 'uploads/csv/' });
 
 const publicRouter = new express.Router(); 
+
+const corsOptions = {
+    origin: 'https://admin.synchronice.id',
+    optionsSuccessStatus: 200
+};
+
+publicRouter.use(cors(corsOptions))
+
+const upload = multer({
+    dest: 'uploads/',
+    limits: { fileSize: 100 * 1024 * 1024 } // 100 MB
+});
+
+// Increase the request size limit
+app.use(bodyParser.json({ limit: '100mb' }));
+app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
+
 publicRouter.post('/api/upload', uploads.single('file'), uploadfile.upload); 
 // publicRouter.post('/api/upload/harian/tebus', uploads.single('file'), uploadfile.uploadtebus); 
 // publicRouter.post('/api/upload/harian/salur', uploads.single('file'), uploadfile.uploadsalur); 
@@ -73,7 +98,51 @@ publicRouter.get('/api/wilayah', wilayah.get);
 publicRouter.get('/api/wilayah/all', wilayah.getall);
 publicRouter.put('/api/wilayah', wilayah.update);
 publicRouter.delete('/api/wilayah', wilayah.remove);
-publicRouter.get('/api/wilayah/search', wilayah.search); 
+publicRouter.get('/api/wilayah/search', wilayah.search);
+
+app.post('/upload-file', cors(corsOptions), upload.single('file'), (req, res) => {
+    try {
+      if (!req.file || !req.body.tabIdentifier) {
+        return res.status(400).json({ message: 'No file or tab identifier uploaded.' });
+      }
+  
+      // Extract file extension
+      const fileExtension = path.extname(req.file.originalname);
+  
+      // Generate unique filename with tab identifier and current date and time
+      const currentDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });
+      const uniqueFileName = `${req.body.tabIdentifier}_file_${currentDate.replace(/\/|,|:|\s/g, '-')}${fileExtension}`;
+  
+      // Define the destination path
+      const destinationPath = path.join(__dirname, 'uploads', uniqueFileName);
+  
+      // Read the uploaded file and save it with the new name
+      fs.readFile(req.file.path, (err, data) => {
+        if (err) {
+          return res.status(400).json({ message: 'Error reading the uploaded file.' });
+        }
+  
+        // Write the file to the destination path
+        fs.writeFile(destinationPath, data, (err) => {
+          if (err) {
+            return res.status(400).json({ message: 'Error saving the file.' });
+          }
+  
+          // Remove the temporary file
+          fs.unlink(req.file.path, (err) => {
+            if (err) {
+              console.error('Error deleting the temporary file:', err);
+            }
+          });
+  
+          return res.status(200).json({ message: 'File uploaded and saved successfully!', fileName: uniqueFileName });
+        });
+      });
+    } catch (error) {
+      return res.status(400).json({ message: error.message });
+    }
+});
+
 
 export {
     publicRouter
