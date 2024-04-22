@@ -20,7 +20,7 @@ const create = async (request) => {
             contact:  request.contact,
             contact_wa:  request.contact_wa,
             jabatan:  request.jabatan,
-            status:  request.status, 
+            status_petugas:  request.status, 
         },
         select: {
             id: true, 
@@ -29,7 +29,7 @@ const create = async (request) => {
             contact: true,
             contact_wa: true,
             jabatan: true,
-            status: true,
+            status_petugas: true,
         }
     });
 }
@@ -49,7 +49,7 @@ const get = async (id) => {
             contact: true,
             contact_wa: true,
             jabatan: true,
-            status: true,
+            status_petugas: true,
         }
     });
 
@@ -60,6 +60,7 @@ const get = async (id) => {
 
     return petugas;
 }
+
 const getall = async (id, res) => { 
     const petugas = await db.petugas.findMany({ 
         select: {
@@ -69,7 +70,7 @@ const getall = async (id, res) => {
             contact: true,
             contact_wa: true,
             jabatan: true,
-            status: true,
+            status_petugas: true,
         }
     });
 
@@ -84,10 +85,10 @@ const getall = async (id, res) => {
             kode: true,
             kategori: true,
             nama: true,
-            long: true,
-            lat: true,
+            longitude: true,
+            lattitude: true,
             alamat: true,
-            status: true,
+            status_profile: true,
         }
     });
 
@@ -97,7 +98,7 @@ const getall = async (id, res) => {
             kode: true,
             nama: true,
             kategori: true, 
-            status: true,
+            status_wilayah: true,
         }
     });
 
@@ -112,7 +113,7 @@ const getall = async (id, res) => {
             id_distributor: true, 
             id_kios: true, 
             kategori: true, 
-            status: true,
+            status_mapping: true,
         }
     });
 
@@ -137,7 +138,7 @@ const getall = async (id, res) => {
                     kecamatan: kecamatanInfo ? kecamatanInfo.nama : null,
                     id_gudang: item.id_gudang,
                     gudang: profile.find(profileItem => profileItem.kode === item.id_gudang)?.nama || null,
-                    status: item.status
+                    status: item.status_mapping
                 };
             } else {
                 return null;
@@ -162,7 +163,7 @@ const getall = async (id, res) => {
                     kecamatan: kecamatanInfo ? kecamatanInfo.nama : null,
                     id_distributor: item.id_distributor,
                     distributor: distributorInfo ? distributorInfo.nama : null,
-                    status: item.status
+                    status: item.status_mapping
                 };
             } else {
                 return null;
@@ -187,7 +188,7 @@ const getall = async (id, res) => {
                     kecamatan: kecamatanInfo ? kecamatanInfo.nama : null,
                     id_kios: item.id_kios,
                     kios: kiosInfo ? kiosInfo.nama : null,
-                    status: item.status
+                    status: item.status_mapping
                 };
             } else {
                 return null;
@@ -205,6 +206,7 @@ const getall = async (id, res) => {
 
     return reconstructedData;
 }
+
 const update = async (request) => {
     // const contact = validate(updateContactValidation, request);
 
@@ -229,7 +231,7 @@ const update = async (request) => {
             contact:  request.contact,
             contact_wa:  request.contact_wa,
             jabatan:  request.jabatan,
-            status:  request.status, 
+            status_petugas:  request.status, 
         },
         select: {
             id: true, 
@@ -238,7 +240,7 @@ const update = async (request) => {
             contact: true,
             contact_wa: true,
             jabatan: true,
-            status: true,
+            status_petugas: true,
         }
     })
 }

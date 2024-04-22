@@ -132,9 +132,7 @@ const getallgudang = async (request) => {
         throw new Error('Internal Server Error');
     } 
 };
-
-
-
+  
 const update = async (request) => {
     // const contact = validate(updateContactValidation, request);
 

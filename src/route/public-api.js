@@ -86,8 +86,7 @@ publicRouter.get('/api/alokasi/all', alokasi.getall);
 publicRouter.put('/api/alokasi', alokasi.update);
 publicRouter.delete('/api/alokasi', alokasi.remove);
 publicRouter.get('/api/alokasi/search', alokasi.search);
-
-
+ 
 publicRouter.post('/api/alokasi', alokasi.create); 
 publicRouter.get('/api/alokasi', alokasi.get);
 publicRouter.get('/api/alokasi/all', alokasi.getall);
@@ -102,50 +101,93 @@ publicRouter.put('/api/wilayah', wilayah.update);
 publicRouter.delete('/api/wilayah', wilayah.remove);
 publicRouter.get('/api/wilayah/search', wilayah.search);
 
-publicRouter.post('/upload-file', cors(corsOptions), upload.single('file'), (req, res) => {
+import {db} from "../application/database.js";
+
+publicRouter.post('/upload-file', cors(corsOptions), upload.single('file'), async (req, res) => {
     try {
-      if (!req.file || !req.body.tabIdentifier) {
-        return res.status(400).json({ message: 'No file or tab identifier uploaded.' });
-      }
-  
-      // Extract file extension
-      const fileExtension = path.extname(req.file.originalname);
-  
-      // Generate unique filename with tab identifier and current date and time
-      const currentDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });
-      const uniqueFileName = `${req.body.tabIdentifier}_file_${currentDate.replace(/\/|,|:|\s/g, '-')}${fileExtension}`;
-  
-      // Define the destination path
-      const destinationPath = path.join(__dirname, 'uploads', uniqueFileName);
-  
-      // Read the uploaded file and save it with the new name
-      fs.readFile(req.file.path, (err, data) => {
-        if (err) {
-          return res.status(400).json({ message: 'Error reading the uploaded file.' });
+        // Validasi input
+        if (!req.file || !req.body.tabIdentifier) {
+            return res.status(400).json({ message: 'Invalid input. Please provide a file and tab identifier.' });
         }
-  
-        // Write the file to the destination path
-        fs.writeFile(destinationPath, data, (err) => {
-          if (err) {
-            return res.status(400).json({ message: 'Error saving the file.' });
-          }
-  
-          // Remove the temporary file
-          fs.unlink(req.file.path, (err) => {
+
+      const today = new Date();
+      const formattedDate = today.toISOString();
+        // Extract file extension
+        const fileExtension = path.extname(req.file.originalname);
+
+        // Generate unique filename with tab identifier and current date and time
+        const currentDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });
+        const uniqueFileName = `${req.body.tabIdentifier}_file_${currentDate.replace(/\/|,|:|\s/g, '-')}${fileExtension}`;
+
+        // Define the destination path
+        const destinationPath = path.join(__dirname, 'uploads', uniqueFileName);
+
+        // Read the uploaded file and save it with the new name
+        fs.readFile(req.file.path, async (err, data) => {
             if (err) {
-              console.error('Error deleting the temporary file:', err);
+                return res.status(400).json({ message: 'Error reading the uploaded file.' });
             }
-          });
-  
-          return res.status(200).json({ message: 'File uploaded and saved successfully!', fileName: uniqueFileName });
+
+            // Write the file to the destination path
+            fs.writeFile(destinationPath, data, async (err) => {
+                if (err) {
+                    return res.status(400).json({ message: 'Error saving the file.' });
+                }
+
+                // Get file size
+                const fileSize = req.file.size;
+
+                try {
+                    // Save file details to the database using Prisma
+                    const savedFile = await db.file_upload.create({
+                        data: {
+                            file_name: uniqueFileName,
+                            file_size: fileSize.toString(), // Convert to string
+                            uri: "/get-file/" + uniqueFileName, // Assuming you want to save the file path
+                            upload_at: formattedDate 
+                        }
+                    });
+                    console.log('File details saved:', savedFile);
+                } catch (error) {
+                    console.error('Error saving file details to database:', error);
+                    return res.status(500).json({ message: 'Error saving file details to database.' });
+                }
+
+                // Remove the temporary file
+                fs.unlink(req.file.path, (err) => {
+                    if (err) {
+                        console.error('Error deleting the temporary file:', err);
+                    }
+                });
+
+                return res.status(200).json({ message: 'File uploaded and saved successfully!', fileName: uniqueFileName });
+            });
         });
-      });
     } catch (error) {
-      return res.status(400).json({ message: error.message });
+        return res.status(400).json({ message: error.message });
     }
 });
-
-
+  
+// Endpoint untuk mengambil file
+publicRouter.get('/get-file/:fileName', (req, res) => {
+  const fileName = req.params.fileName;
+  const filePath = path.join(__dirname, 'uploads', fileName); // Sesuaikan dengan direktori penyimpanan file
+  
+  // Periksa apakah file ada
+  if (fs.existsSync(filePath)) {
+      // Baca isi file
+      fs.readFile(filePath, 'utf8', (err, data) => {
+          if (err) {
+              console.error('Error reading file:', err);
+              return res.status(500).json({ message: 'Error reading file.' });
+          }
+          res.status(200).send(data);
+      });
+  } else {
+      res.status(404).json({ message: 'File not found.' });
+  }
+});
+ 
 export {
     publicRouter
 }
