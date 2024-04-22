@@ -170,22 +170,32 @@ publicRouter.post('/upload-file', cors(corsOptions), upload.single('file'), asyn
   
 // Endpoint untuk mengambil file
 publicRouter.get('/get-file/:fileName', (req, res) => {
-  const fileName = req.params.fileName;
-  const filePath = path.join(__dirname, 'uploads', fileName); // Sesuaikan dengan direktori penyimpanan file
+    try {
+      const { fileName } = req.params;
+      const filePath = path.join(__dirname, 'uploads', fileName);
   
-  // Periksa apakah file ada
-  if (fs.existsSync(filePath)) {
-      // Baca isi file
-      fs.readFile(filePath, 'utf8', (err, data) => {
+      // Check if the file exists
+      if (fs.existsSync(filePath)) {
+        // Read the file content
+        fs.readFile(filePath, 'utf8', (err, data) => {
           if (err) {
-              console.error('Error reading file:', err);
-              return res.status(500).json({ message: 'Error reading file.' });
+            console.error('Error reading file:', err);
+            return res.status(500).json({ message: 'Error reading file.' });
           }
+  
+          // Set the content type to text/csv
+          res.setHeader('Content-Type', 'text/csv');
+  
+          // Send the file content as the response
           res.status(200).send(data);
-      });
-  } else {
-      res.status(404).json({ message: 'File not found.' });
-  }
+        });
+      } else {
+        res.status(404).json({ message: 'File not found.' });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ message: 'Internal server error.' });
+    }
 });
  
 export {
