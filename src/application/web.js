@@ -10,7 +10,7 @@ import cors from "cors";
 export const web = express();
 
 const corsOptions = {
-    origin: 'https://admin.synchronice.id',
+    origin: ['https://admin.synchronice.id', 'https://mage.synchronice.id'],
     optionsSuccessStatus: 200
 };
 

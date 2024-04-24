@@ -49,5 +49,6 @@ jobs:
           docker system prune -f
           docker run --name fermon-server -dit \
             -p 4000:4000 \
+            -p 8002:8002 \
             -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
             ${{ secrets.DOCKERHUB_USERNAME }}/fermon-server:latest

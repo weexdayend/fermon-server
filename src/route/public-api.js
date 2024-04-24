@@ -6,6 +6,7 @@ import path from 'path';
 
 import cors from "cors";
 
+import { db } from "../application/database.js";
 import { __dirname } from "../dirname.js";
 
 import bodyParser from 'body-parser'
@@ -26,7 +27,7 @@ const uploadscsv = multer({ dest: 'uploads/csv/' });
 const publicRouter = new express.Router(); 
 
 const corsOptions = {
-    origin: 'https://admin.synchronice.id',
+    origin: ['https://admin.synchronice.id', 'https://mage.synchronice.id'],
     optionsSuccessStatus: 200
 };
 
@@ -101,7 +102,39 @@ publicRouter.put('/api/wilayah', wilayah.update);
 publicRouter.delete('/api/wilayah', wilayah.remove);
 publicRouter.get('/api/wilayah/search', wilayah.search);
 
-import {db} from "../application/database.js";
+// app.post('/upload', upload.single('file'), (req, res) => {
+//     if (!req.file) {
+//       return res.status(400).send('No file uploaded.');
+//     }
+  
+//     const startTime = Date.now();
+//     const pythonScript = spawn('python', [path.join(__dirname, 'import-data.py'), req.file.path]);
+  
+//     let totalBatches = 0;
+//     let totalRows = 0;
+  
+//     pythonScript.stdout.on('data', (data) => {
+//       const response = data.toString();
+//       const matches = response.match(/Total batches successfully inserted: (\d+)\nTotal rows: (\d+)/);
+  
+//       console.log(`stdout: ${matches}`);
+//     });
+  
+//     pythonScript.stderr.on('data', (data) => {
+//       console.error(`stderr: ${data}`);
+//     });
+  
+//     pythonScript.on('close', (code) => {
+//       if (code === 0) {
+//         const endTime = Date.now();
+//         const elapsedTime = (endTime - startTime) / 1000; // Convert milliseconds to seconds
+//         res.write(`data: ${JSON.stringify({ message: 'File uploaded and data imported successfully.', elapsedTime, totalBatches, totalRows })}\n\n`);
+//         res.end();
+//       } else {
+//         res.status(500).send('Error importing data into PostgreSQL.');
+//       }
+//     });
+// });
 
 publicRouter.post('/upload-file', cors(corsOptions), upload.single('file'), async (req, res) => {
     try {
@@ -110,8 +143,8 @@ publicRouter.post('/upload-file', cors(corsOptions), upload.single('file'), asyn
             return res.status(400).json({ message: 'Invalid input. Please provide a file and tab identifier.' });
         }
 
-      const today = new Date();
-      const formattedDate = today.toISOString();
+        const today = new Date();
+        const formattedDate = today.toISOString();
         // Extract file extension
         const fileExtension = path.extname(req.file.originalname);
 
@@ -169,7 +202,7 @@ publicRouter.post('/upload-file', cors(corsOptions), upload.single('file'), asyn
 });
   
 // Endpoint untuk mengambil file
-publicRouter.get('/get-file/:fileName', (req, res) => {
+publicRouter.get('/get-file/:fileName', cors(corsOptions), (req, res) => {
     try {
       const { fileName } = req.params;
       const filePath = path.join(__dirname, 'uploads', fileName);
@@ -197,7 +230,7 @@ publicRouter.get('/get-file/:fileName', (req, res) => {
       res.status(500).json({ message: 'Internal server error.' });
     }
 });
- 
+
 export {
     publicRouter
 }
