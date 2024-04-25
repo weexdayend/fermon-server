@@ -1,79 +1,121 @@
 import psycopg2
 import csv
-from datetime import datetime
 import argparse
 import logging
-import sys
+import socketio
+from datetime import datetime
 
-# Konfigurasi logging
+# Initialize socket client
+sio = socketio.Client()
+
+# Socket event handlers
+@sio.event
+def connect():
+    print('Connected to socket server')
+
+@sio.event
+def connect_error(err):
+    print(f'Failed to connect: {err}')
+
+@sio.event
+def disconnect():
+    print('Disconnected from socket server')
+
+try:
+    sio.connect('https://socket.synchronice.id', transports=['websocket'])
+except Exception as e:
+    print(f"Error: {e}")
+
+# Logging configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def connect_to_postgres(dbname, user, password, host, port):
-    """Membuat koneksi ke database PostgreSQL."""
+# Batch configuration
+batch_size = 1000
+total_rows = 0
+
+def connect_to_postgres(db_config):
+    """Establish a connection to PostgreSQL database."""
     try:
-        conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
+        conn = psycopg2.connect(**db_config)
         return conn
     except psycopg2.OperationalError as e:
         logger.error(f"Error connecting to PostgreSQL database: {e}")
         return None
 
-def process_csv_file(file_path, chunk_size=100):
-    """Membaca dan memproses file CSV secara berchunk."""
+def process_csv_file(file_path, chunk_size=1000):
+    """Read and process the CSV file in chunks."""
     with open(file_path, 'r', newline='') as csvfile:
         csv_reader = csv.DictReader(csvfile, delimiter=';')
-        chunk = []
-        for i, row in enumerate(csv_reader):
-            chunk.append(row)
-            if i > 0 and i % chunk_size == 0:
-                yield chunk
-                chunk = []
-        if chunk:
-            yield chunk
+        rows = list(csv_reader)
+        total_rows = len(rows)
+        total_batches = (total_rows + batch_size - 1) // batch_size
 
-def insert_data_to_db(conn, data):
+        for i in range(0, total_rows, chunk_size):
+            yield rows[i:i + chunk_size], total_batches
+
+def insert_data_to_db(conn, data, total_batches):
     cursor = conn.cursor()
     total_rows_processed = 0
+    total_duration = 0
 
     try:
         for chunk in data:
+            start_time = datetime.now()
+            
+            # Begin transaction
+            cursor.execute("BEGIN")
+            # kode_produsen,nama_produsen,no_f6,kode_distributor,nama_distributor,kode_provinsi,nama_provinsi,kode_kab_kota,nama_kab_kota,kode_kecamatan,nama_kecamatan,bulan,tahun,kode_pengecer,nama_pengecer,kode_produk,nama_produk,stok_awal,penebusan,penyaluran,stok_akhir,status_f6,keterangan
+            # Insert data in batch
+            cursor.executemany("""
+            INSERT INTO datawarehouse_f6 
+            (kode_produsen, nama_produsen, no_f6, kode_distributor, nama_distributor, kode_provinsi, nama_provinsi, 
+            kode_kab_kota, nama_kab_kota, kode_kecamatan, nama_kecamatan, bulan, tahun, 
+            kode_pengecer, nama_pengecer, kode_produk, nama_produk, stok_awal, penebusan, penyaluran, stok_akhir, 
+            status_f6, keterangan, status_processed, processed_at, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, [(row['kode_produsen'], row['nama_produsen'], row['no_f6'], row['kode_distributor'], row['nama_distributor'],
+            row['kode_provinsi'], row['nama_provinsi'], row['kode_kab_kota'], row['nama_kab_kota'],
+            row['kode_kecamatan'], row['nama_kecamatan'], int(row['bulan']), int(row['tahun']),
+            row['kode_pengecer'], row['nama_pengecer'], row['kode_produk'], row['nama_produk'], row['stok_awal'] or '0',
+            row['penebusan'] or '0', row['penyaluran'] or '0', row['stok_akhir'] or '0',
+            row['status_f6'], row['keterangan'] or None, "unprocessed", datetime.now(), datetime.now()) for row in chunk])
+
+            # Commit transaction
+            conn.commit()
+
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            total_duration += duration
             total_rows_processed += len(chunk)
-            print(f"Processed {total_rows_processed} rows")
 
-            try:
-                # Mulai transaksi
-                cursor.execute("BEGIN")
+            # Calculate remaining time
+            avg_duration_per_batch = total_duration / ((total_rows_processed + batch_size - 1) // batch_size)
+            estimated_remaining_time = avg_duration_per_batch * ((total_batches * batch_size - total_rows_processed) // batch_size) / 60
 
-                # Lakukan penambahan data dalam transaksi massal
-                cursor.executemany("""
-                INSERT INTO datawarehouse_report_f6 (produsen, nomor, kode_distributor, nama_distributor, kode_provinsi, nama_provinsi, kode_kabupaten, nama_kabupaten, kode_kecamatan, nama_kecamatan, bulan, tahun, kode_pengecer, nama_pengecer, produk, stok_awal, penebusan, penyaluran, stok_akhir, status, keterangan, userid, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, [(row['produsen'], row['nomor'], row['kode_distributor'], row['nama_distributor'],
-                row['kode_provinsi'], row['nama_provinsi'], row['kode_kabupaten'], row['nama_kabupaten'],
-                row['kode_kecamatan'], row['nama_kecamatan'], int(row['bulan']), int(row['tahun']),
-                row['kode_pengecer'], row['nama_pengecer'], row['produk'], row['stok_awal'] or '0',
-                row['penebusan'] or '0', row['penyaluran'] or '0', row['stok_akhir'] or '0',
-                row['status'], row['keterangan'] or None, None, datetime.now()) for row in chunk])
+            logger.info(f"Processed {total_rows_processed} rows. Estimated remaining time: {estimated_remaining_time:.2f} minutes")
 
-                # Commit transaksi
-                conn.commit()
+            object_datas = {
+                'total_row': total_rows,
+                'total_batch': total_batches,
+                'current_batch': (total_rows_processed + batch_size - 1) // batch_size,
+                'rows_processed': f'total_rows_processed',
+                'average_duration': f'{avg_duration_per_batch}',
+                'estimated': f'{estimated_remaining_time:.2f}'
+            }
 
-                logger.info(f"{total_rows_processed} rows processed")
-            except Exception as e:
-                conn.rollback()
-                logger.error(f"Error inserting row into database: {e}")
+            # Send message to socket server
+            sio.emit('pyEvents', object_datas)
 
         logger.info("Data inserted successfully.")
-        print("Data inserted successfully.")
     except Exception as e:
+        conn.rollback()
         logger.error(f"Error inserting data into database: {e}")
     finally:
         cursor.close()
 
-
- 
 def main(csv_file_path):
-    # Konfigurasi database
+    # Database configuration
     db_config = {
         "dbname": "postgres",
         "user": "postgres",
@@ -82,13 +124,13 @@ def main(csv_file_path):
         "port": "5432"
     }
 
-    # Membuat koneksi ke database
-    with connect_to_postgres(**db_config) as conn:
+    # Connect to database
+    with connect_to_postgres(db_config) as conn:
         if conn:
-            # Membaca dan memproses file CSV
+            # Process and insert data
             csv_data = process_csv_file(csv_file_path)
-            # Menyisipkan data ke dalam database
-            insert_data_to_db(conn, csv_data)
+            for chunk, total_batches in csv_data:
+                insert_data_to_db(conn, chunk, total_batches)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a CSV file and insert data into PostgreSQL database.")

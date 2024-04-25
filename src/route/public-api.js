@@ -11,20 +11,20 @@ import { __dirname } from "../dirname.js";
 
 import bodyParser from 'body-parser'
 
-import uploadfile from "../controller/uploadfile-controller.js"; 
-import profile from "../controller/profile-controller.js"; 
-import mappingprofile from "../controller/mappingprofile-controller.js"; 
-import location from "../controller/location-controller.js"; 
-import petugas from "../controller/petugas-controller.js"; 
-import mappingpetugas from "../controller/mappingpetugas-controller.js"; 
-import hargapupuk from "../controller/hargapupuk-controller.js"; 
-import alokasi from "../controller/alokasi-controller.js"; 
-import wilayah from "../controller/wilayah-controller.js"; 
+import uploadfile from "../controller/uploadfile-controller.js";
+import profile from "../controller/profile-controller.js";
+import mappingprofile from "../controller/mappingprofile-controller.js";
+import location from "../controller/location-controller.js";
+import petugas from "../controller/petugas-controller.js";
+import mappingpetugas from "../controller/mappingpetugas-controller.js";
+import hargapupuk from "../controller/hargapupuk-controller.js";
+import alokasi from "../controller/alokasi-controller.js";
+import wilayah from "../controller/wilayah-controller.js";
 
 const uploads = multer({ dest: 'uploads/' });
 const uploadscsv = multer({ dest: 'uploads/csv/' });
 
-const publicRouter = new express.Router(); 
+const publicRouter = new express.Router();
 
 const corsOptions = {
     origin: ['https://admin.synchronice.id', 'https://mage.synchronice.id'],
@@ -42,99 +42,62 @@ const upload = multer({
 publicRouter.use(bodyParser.json({ limit: '100mb' }));
 publicRouter.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 
-publicRouter.post('/api/upload', uploads.single('file'), uploadfile.upload); 
-// publicRouter.post('/api/upload/harian/tebus', uploads.single('file'), uploadfile.uploadtebus); 
-// publicRouter.post('/api/upload/harian/salur', uploads.single('file'), uploadfile.uploadsalur); 
-publicRouter.post('/api/upload/harian/salur', uploadscsv.single('file'), uploadfile.uploadsalur);  
-publicRouter.post('/api/upload/harian/tebus', uploadscsv.single('file'), uploadfile.uploadtebus);  
-publicRouter.post('/api/upload/bulan/f5', uploadscsv.single('file'), uploadfile.uploadbulanf5); 
-publicRouter.post('/api/upload/bulan/f6', uploadscsv.single('file'), uploadfile.uploadbulanf6); 
-// publicRouter.get('/api/profile', profile.profile); 
-// publicRouter.get('/api/location', location.location); 
-publicRouter.post('/api/profile', profile.create); 
-publicRouter.get('/api/profile', profile.get);
-publicRouter.get('/api/profile/all', profile.getall);
-publicRouter.put('/api/profile', profile.update);
-publicRouter.delete('/api/profile', profile.remove);
-publicRouter.get('/api/profile/search', profile.search);
+publicRouter.post('/upload', uploads.single('file'), uploadfile.upload);
+publicRouter.post('/upload/harian/salur', uploadscsv.single('file'), uploadfile.uploadsalur);
+publicRouter.post('/upload/harian/tebus', uploadscsv.single('file'), uploadfile.uploadtebus);
+publicRouter.post('/upload/bulan/f5', uploadscsv.single('file'), uploadfile.uploadbulanf5);
+publicRouter.post('/upload/bulan/f6', uploadscsv.single('file'), uploadfile.uploadbulanf6);
+publicRouter.post('/profile', profile.create);
+publicRouter.get('/profile', profile.get);
+publicRouter.get('/profile/all', profile.getall);
+publicRouter.put('/profile', profile.update);
+publicRouter.delete('/profile', profile.remove);
+publicRouter.get('/profile/search', profile.search);
 
-publicRouter.post('/api/mappingprofile', mappingprofile.create); 
-publicRouter.get('/api/mappingprofile', mappingprofile.get);
-publicRouter.get('/api/mappingprofile/gudang', mappingprofile.getallgudang);
-publicRouter.put('/api/mappingprofile', mappingprofile.update);
-publicRouter.delete('/api/mappingprofile', mappingprofile.remove);
-publicRouter.get('/api/mappingprofile/search', mappingprofile.search);
-// publicRouter.post('/api/profile/mapping', mappingpetugas.create); 
+publicRouter.post('/mappingprofile', mappingprofile.create);
+publicRouter.get('/mappingprofile', mappingprofile.get);
+publicRouter.get('/mappingprofile/gudang', mappingprofile.getallgudang);
+publicRouter.put('/mappingprofile', mappingprofile.update);
+publicRouter.delete('/mappingprofile', mappingprofile.remove);
+publicRouter.get('/mappingprofile/search', mappingprofile.search);
+// publicRouter.post('/profile/mapping', mappingpetugas.create); 
 
-publicRouter.post('/api/petugas', petugas.create); 
-publicRouter.get('/api/petugas', petugas.get);
-publicRouter.get('/api/petugas/all', petugas.getall);
-publicRouter.put('/api/petugas', petugas.update);
-publicRouter.delete('/api/petugas', petugas.remove);
-publicRouter.get('/api/petugas/search', petugas.search);
-publicRouter.post('/api/petugas/mapping', mappingpetugas.create); 
- 
-publicRouter.post('/api/hargapupuk', hargapupuk.create); 
-publicRouter.get('/api/hargapupuk', hargapupuk.get);
-publicRouter.get('/api/hargapupuk/all', hargapupuk.getall);
-publicRouter.put('/api/hargapupuk', hargapupuk.update);
-publicRouter.delete('/api/hargapupuk', hargapupuk.remove);
-publicRouter.get('/api/hargapupuk/search', hargapupuk.search);
+publicRouter.post('/petugas', petugas.create);
+publicRouter.get('/petugas', petugas.get);
+publicRouter.get('/petugas/all', petugas.getall);
+publicRouter.put('/petugas', petugas.update);
+publicRouter.delete('/petugas', petugas.remove);
+publicRouter.get('/petugas/search', petugas.search);
+publicRouter.post('/petugas/mapping', mappingpetugas.create);
 
-publicRouter.post('/api/alokasi', alokasi.create); 
-publicRouter.get('/api/alokasi', alokasi.get);
-publicRouter.get('/api/alokasi/all', alokasi.getall);
-publicRouter.put('/api/alokasi', alokasi.update);
-publicRouter.delete('/api/alokasi', alokasi.remove);
-publicRouter.get('/api/alokasi/search', alokasi.search);
- 
-publicRouter.post('/api/alokasi', alokasi.create); 
-publicRouter.get('/api/alokasi', alokasi.get);
-publicRouter.get('/api/alokasi/all', alokasi.getall);
-publicRouter.put('/api/alokasi', alokasi.update);
-publicRouter.delete('/api/alokasi', alokasi.remove);
-publicRouter.get('/api/alokasi/search', alokasi.search);
+publicRouter.post('/hargapupuk', hargapupuk.create);
+publicRouter.get('/hargapupuk', hargapupuk.get);
+publicRouter.get('/hargapupuk/all', hargapupuk.getall);
+publicRouter.put('/hargapupuk', hargapupuk.update);
+publicRouter.delete('/hargapupuk', hargapupuk.remove);
+publicRouter.get('/hargapupuk/search', hargapupuk.search);
 
-publicRouter.post('/api/wilayah', wilayah.create); 
-publicRouter.get('/api/wilayah', wilayah.get);
-publicRouter.get('/api/wilayah/all', wilayah.getall);
-publicRouter.put('/api/wilayah', wilayah.update);
-publicRouter.delete('/api/wilayah', wilayah.remove);
-publicRouter.get('/api/wilayah/search', wilayah.search);
+publicRouter.post('/alokasi', alokasi.create);
+publicRouter.get('/alokasi', alokasi.get);
+publicRouter.get('/alokasi/all', alokasi.getall);
+publicRouter.put('/alokasi', alokasi.update);
+publicRouter.delete('/alokasi', alokasi.remove);
+publicRouter.get('/alokasi/search', alokasi.search);
 
-// app.post('/upload', upload.single('file'), (req, res) => {
-//     if (!req.file) {
-//       return res.status(400).send('No file uploaded.');
-//     }
-  
-//     const startTime = Date.now();
-//     const pythonScript = spawn('python', [path.join(__dirname, 'import-data.py'), req.file.path]);
-  
-//     let totalBatches = 0;
-//     let totalRows = 0;
-  
-//     pythonScript.stdout.on('data', (data) => {
-//       const response = data.toString();
-//       const matches = response.match(/Total batches successfully inserted: (\d+)\nTotal rows: (\d+)/);
-  
-//       console.log(`stdout: ${matches}`);
-//     });
-  
-//     pythonScript.stderr.on('data', (data) => {
-//       console.error(`stderr: ${data}`);
-//     });
-  
-//     pythonScript.on('close', (code) => {
-//       if (code === 0) {
-//         const endTime = Date.now();
-//         const elapsedTime = (endTime - startTime) / 1000; // Convert milliseconds to seconds
-//         res.write(`data: ${JSON.stringify({ message: 'File uploaded and data imported successfully.', elapsedTime, totalBatches, totalRows })}\n\n`);
-//         res.end();
-//       } else {
-//         res.status(500).send('Error importing data into PostgreSQL.');
-//       }
-//     });
-// });
+publicRouter.post('/alokasi', alokasi.create);
+publicRouter.get('/alokasi', alokasi.get);
+publicRouter.get('/alokasi/all', alokasi.getall);
+publicRouter.put('/alokasi', alokasi.update);
+publicRouter.delete('/alokasi', alokasi.remove);
+publicRouter.get('/alokasi/search', alokasi.search);
+
+publicRouter.post('/wilayah', wilayah.create);
+publicRouter.get('/wilayah', wilayah.get);
+publicRouter.get('/wilayah/all', wilayah.getall);
+publicRouter.put('/wilayah', wilayah.update);
+publicRouter.delete('/wilayah', wilayah.remove);
+publicRouter.get('/wilayah/search', wilayah.search);
+
 
 publicRouter.post('/upload-file', cors(corsOptions), upload.single('file'), async (req, res) => {
     try {
@@ -177,7 +140,7 @@ publicRouter.post('/upload-file', cors(corsOptions), upload.single('file'), asyn
                             file_name: uniqueFileName,
                             file_size: fileSize.toString(), // Convert to string
                             uri: "/get-file/" + uniqueFileName, // Assuming you want to save the file path
-                            upload_at: formattedDate 
+                            upload_at: formattedDate
                         }
                     });
                     console.log('File details saved:', savedFile);
@@ -200,34 +163,34 @@ publicRouter.post('/upload-file', cors(corsOptions), upload.single('file'), asyn
         return res.status(400).json({ message: error.message });
     }
 });
-  
+
 // Endpoint untuk mengambil file
 publicRouter.get('/get-file/:fileName', cors(corsOptions), (req, res) => {
     try {
-      const { fileName } = req.params;
-      const filePath = path.join(__dirname, 'uploads', fileName);
-  
-      // Check if the file exists
-      if (fs.existsSync(filePath)) {
-        // Read the file content
-        fs.readFile(filePath, 'utf8', (err, data) => {
-          if (err) {
-            console.error('Error reading file:', err);
-            return res.status(500).json({ message: 'Error reading file.' });
-          }
-  
-          // Set the content type to text/csv
-          res.setHeader('Content-Type', 'text/csv');
-  
-          // Send the file content as the response
-          res.status(200).send(data);
-        });
-      } else {
-        res.status(404).json({ message: 'File not found.' });
-      }
+        const { fileName } = req.params;
+        const filePath = path.join(__dirname, 'uploads', fileName);
+
+        // Check if the file exists
+        if (fs.existsSync(filePath)) {
+            // Read the file content
+            fs.readFile(filePath, 'utf8', (err, data) => {
+                if (err) {
+                    console.error('Error reading file:', err);
+                    return res.status(500).json({ message: 'Error reading file.' });
+                }
+
+                // Set the content type to text/csv
+                res.setHeader('Content-Type', 'text/csv');
+
+                // Send the file content as the response
+                res.status(200).send(data);
+            });
+        } else {
+            res.status(404).json({ message: 'File not found.' });
+        }
     } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ message: 'Internal server error.' });
+        console.error('Error:', error);
+        res.status(500).json({ message: 'Internal server error.' });
     }
 });
 

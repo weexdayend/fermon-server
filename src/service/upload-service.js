@@ -1,39 +1,39 @@
-import excelToJson from 'convert-excel-to-json'; 
-import {db} from "../application/database.js";
+import excelToJson from 'convert-excel-to-json';
+import { db } from "../application/database.js";
 import csv from "fast-csv";
-import fs from "fs"; 
-import path from 'path'; 
+import fs from "fs";
+import path from 'path';
 import { promisify } from 'util';
 import { exec, spawn } from 'child_process';
 const execPromisified = promisify(exec);
- 
+
 import { createDomain } from 'domain';
 import delay from 'delay';
- 
+
 const checkFileExists = (filePath) => {
     return new Promise((resolve, reject) => {
         fs.access(filePath, fs.constants.F_OK, (err) => {
-            if (err) { 
+            if (err) {
                 reject(new Error(`File ${filePath} tidak ditemukan`));
-            } else { 
+            } else {
                 resolve();
             }
         });
     });
-}; 
+};
 const captureStdout = async (routine) => {
     const domain = createDomain();
-  
+
     domain.outputInterceptor = '';
-  
+
     await domain.run(() => {
-      return routine();
+        return routine();
     });
-  
+
     const output = domain.outputInterceptor;
-  
+
     domain.outputInterceptor = undefined;
-  
+
     return output;
 };
 const executePythonScript = (command, onData) => {
@@ -46,7 +46,7 @@ const executePythonScript = (command, onData) => {
 
         pythonProcess.stderr.on('data', (data) => {
             const error = data.toString().trim();
-            if (!error.startsWith('INFO')) {  
+            if (!error.startsWith('INFO')) {
                 reject(new Error(error));
             }
         });
@@ -58,12 +58,12 @@ const executePythonScript = (command, onData) => {
             }
         });
     });
-}; 
+};
 const extractRowsProcessed = (output) => {
     if (!output || typeof output !== 'string') {
         console.error('Output is not a valid string');
         return null;
-    } 
+    }
     const match = output.match(/Processed (\d+) rows/);
     if (match) {
         return parseInt(match[1]);
@@ -72,7 +72,7 @@ const extractRowsProcessed = (output) => {
         return null;
     }
 };
- 
+
 const uploadService = {
     processUploadedFile: async (file) => {
         try {
@@ -80,9 +80,9 @@ const uploadService = {
             const excelData = excelToJson({
                 sourceFile: file.path,
             });
- 
+
             const sheetData = excelData[Object.keys(excelData)[0]];
- 
+
             const columnMapping = {
                 'Kode Produsen': 'kode_produsen',
                 'Produsen': 'produsen',
@@ -102,97 +102,37 @@ const uploadService = {
                 'Penebusan': 'penebusan',
                 'Penyaluran': 'penyaluran',
                 'Stok Akhir': 'stok_akhir',
-                'Keterangan': 'keterangan'  
+                'Keterangan': 'keterangan'
             };
 
-           
+
             const jsonData = sheetData.slice(1).map(row => {
                 const obj = {};
                 const parameterJSON = sheetData[0];
                 // console.log("parameterJSON:", parameterJSON);
-                Object.keys(parameterJSON).forEach(key => { 
-                    const columnNameInExcel = parameterJSON[key];  
+                Object.keys(parameterJSON).forEach(key => {
+                    const columnNameInExcel = parameterJSON[key];
                     // console.log("columnNameInExcel:", columnNameInExcel);
                     if (columnMapping.hasOwnProperty(columnNameInExcel.trim())) {
 
                         obj[columnMapping[columnNameInExcel]] = row[key];
                     } else {
-                        obj[columnNameInExcel.trim().toLowerCase()] = null ;
+                        obj[columnNameInExcel.trim().toLowerCase()] = null;
                     }
 
-                }); 
+                });
                 return obj;
             });
-             
+
             console.log("Data from Excel file:", jsonData);
- 
+
             return { success: true, message: "Data from Excel file retrieved successfully", data: jsonData };
-        } catch (error) { 
+        } catch (error) {
             console.error("Error processing uploaded Excel file:", error);
             throw error;
         }
     },
-    /* processUploadedFileTebus: async (file) => {
-        try {
-          
-            const excelData = excelToJson({
-                sourceFile: file.path,
-            });
- 
-            const sheetData = excelData[Object.keys(excelData)[0]];
- 
-            const parameterJSON = sheetData[0];
- 
-            const jsonData = sheetData.slice(1).map(row => {
-                const obj = {};
-                Object.keys(parameterJSON).forEach(key => {
-                    obj[parameterJSON[key].trim().toLowerCase()] = row[key];
-                });
-                return obj;
-            });
-
-            // Di sini Anda bisa melakukan apa pun dengan data yang Anda ambil dari file Excel
-            console.log("Data from Excel file:", jsonData);
-
-            // Anda juga dapat mengembalikan data jika diperlukan
-            return { success: true, message: "Data from Excel file retrieved successfully", data: jsonData };
-        } catch (error) {
-            // Tangani kesalahan jika terjadi
-            console.error("Error processing uploaded Excel file:", error);
-            throw error;
-        }
-    }, */
-    /* processUploadedFileSalur: async (file) => {
-        try {
-          
-            const excelData = excelToJson({
-                sourceFile: file.path,
-            });
- 
-            const sheetData = excelData[Object.keys(excelData)[0]];
- 
-            const parameterJSON = sheetData[0];
- 
-            const jsonData = sheetData.slice(1).map(row => {
-                const obj = {};
-                Object.keys(parameterJSON).forEach(key => {
-                    obj[parameterJSON[key].trim().toLowerCase()] = row[key];
-                });
-                return obj;
-            });
-
-            // Di sini Anda bisa melakukan apa pun dengan data yang Anda ambil dari file Excel
-            console.log("Data from Excel file:", jsonData);
-
-            // Anda juga dapat mengembalikan data jika diperlukan
-            return { success: true, message: "Data from Excel file retrieved successfully", data: jsonData };
-        } catch (error) {
-            // Tangani kesalahan jika terjadi
-            console.error("Error processing uploaded Excel file:", error);
-            throw error;
-        }
-    },  */
-    processUploadedFileBulanF5: async (file) => {
+    /* processUploadedFileBulanF5: async (file) => {
         try { 
             const today = new Date();
             const formattedDate = today.toISOString();
@@ -212,11 +152,11 @@ const uploadService = {
                         if (data.hasOwnProperty(key)) {
                             if (!data[key]) {
                                 console.log(`Kolom '${key}' kosong pada baris:`, data);
-                                return false; // Mengembalikan false jika ada kolom kosong
+                                return false;  
                             }
                         }
                     }
-                    return true; // Mengembalikan true jika semua kolom memiliki nilai
+                    return true;  
                 }
             });
     
@@ -370,54 +310,39 @@ const uploadService = {
             console.error('Error processing uploaded CSV file:', error);
             throw error;
         }
-    }, 
-    processUploadedFileBulanF6: async (file, res) => {
-        /* try {
-            // Menghubungkan ke database
+    },  */
+    processUploadedFileBulanF5: async (file, res) => {
+        try {
             await db.$connect();
-    
-            // Validasi jenis file
-            if (!file || !file.path || !file.mimetype || !file.originalname) {
-                throw new Error('File tidak valid.');
-            }
-    
-            // Validasi tipe file
-            if (file.mimetype !== 'text/csv') {
-                throw new Error('Jenis file harus CSV.');
-            }
-    
-            const hariIni = new Date();
-            const tanggalTerformat = hariIni.toISOString();
-    
-            // Path ke file CSV yang diunggah
-            const pathFileCSV = file.path;
-    
-            await checkFileExists(pathFileCSV);
-    
-            const currentFolder = process.cwd();
-            const skripPythonPath = path.join(currentFolder, 'src', 'service', 'proses.py');
-    
-            const perintah = `python "${skripPythonPath}" "${pathFileCSV}"`;
-    
-            // const output = await executePythonScript(perintah);
-            // console.log("Data CSV berhasil diimpor");
-            // res.send("Upload success");
-                // Setelah menjalankan skrip Python
-                const output = await executePythonScript(perintah);
-                console.log("Output from Python script:", output);  // Cetak output dari skrip Python
-                // Tangkap informasi jumlah baris yang sudah diproses dari output
-                const rowsProcessed = extractRowsProcessed(output);
-                console.log("Rows processed:", rowsProcessed);  // Cetak informasi jumlah baris yang sudah diproses
-                res.send(`Upload success. ${rowsProcessed} rows processed.`);
-    
+            const pythonScript = spawn('/usr/bin/python3', ['src/service/proses_f5.py', file.path]);
+
+            pythonScript.stdout.on('data', (data) => {
+                const response = data.toString();
+                const matches = response.match(/Total batches successfully inserted: (\d+)\nTotal rows: (\d+)/);
+
+                console.log(`stdout: ${matches}`);
+            });
+
+            pythonScript.stderr.on('data', (data) => {
+                console.error(`stderr: ${data}`);
+            });
+
+            pythonScript.on('close', (code) => {
+                if (code === 0) {
+                    res.send(`File uploaded and data imported successfully.`); // Mengirimkan pesan langsung tanpa res.write dan res.end
+                } else {
+                    res.status(500).send(`Error importing data into PostgreSQL.`);
+                }
+            });
+
         } catch (error) {
             console.error('Error saat memproses file CSV yang diunggah:', error);
             res.status(500).json({ error: 'Kesalahan server internal' });
         } finally {
-            // Menutup koneksi dalam blok finally untuk menangani kesalahan
             await db.$disconnect();
-        } */
-        // let rowsProcessed = 0;
+        }
+    },
+    processUploadedFileBulanF6: async (file, res) => {
         try {
             // Menghubungkan ke database
             let rowsProcessed = 0;
@@ -426,25 +351,25 @@ const uploadService = {
             if (!file || !file.path || !file.mimetype || !file.originalname) {
                 throw new Error('File tidak valid.');
             }
-    
+
             // Validasi tipe file
             if (file.mimetype !== 'text/csv') {
                 throw new Error('Jenis file harus CSV.');
             }
-    
+
             const hariIni = new Date();
             const tanggalTerformat = hariIni.toISOString();
-    
+
             // Path ke file CSV yang diunggah
             const pathFileCSV = file.path;
-    
+
             await checkFileExists(pathFileCSV);
-    
+
             const currentFolder = process.cwd();
             const skripPythonPath = path.join(currentFolder, 'src', 'service', 'proses.py');
-    
+
             const perintah = `python "${skripPythonPath}" "${pathFileCSV}"`;
-           
+
             await executePythonScript(perintah, (output) => {
                 const match = output.match(/Processed (\d+) rows/);
                 if (match) {
@@ -460,20 +385,20 @@ const uploadService = {
             // Tangkap informasi jumlah baris yang sudah diproses dari output
             // const rowsProcessed = extractRowsProcessed(output);
             // console.log("Rows processed:", rowsProcessed);
-    
+
             // Hanya panggil res.send setelah semua proses selesai
-             res.send(`Upload success. ${rowsProcessed} rows processed.`);
-    
-        }  catch (error) {
+            res.send(`Upload success. ${rowsProcessed} rows processed.`);
+
+        } catch (error) {
             console.error('Error saat memproses file CSV yang diunggah:', error);
             res.status(500).json({ error: 'Kesalahan server internal' });
         } finally {
             await db.$disconnect();
         }
-    }, 
-    processUploadedFileSalur: async (file, res) => { 
+    },
+    processUploadedFileSalur: async (file, res) => {
         let startTime; // Deklarasikan variabel startTime di luar blok try
-    
+
         try {
             // Menghubungkan ke database
             let rowsProcessed = 0;
@@ -482,24 +407,24 @@ const uploadService = {
             if (!file || !file.path || !file.mimetype || !file.originalname) {
                 throw new Error('File tidak valid.');
             }
-    
+
             // Validasi tipe file
             if (file.mimetype !== 'text/csv') {
                 throw new Error('Jenis file harus CSV.');
             }
-    
+
             const hariIni = new Date();
             const tanggalTerformat = hariIni.toISOString();
-    
+
             // Path ke file CSV yang diunggah
             const pathFileCSV = file.path;
-    
+
             await checkFileExists(pathFileCSV);
-    
-            const currentFolder = process.cwd(); 
-    
+
+            const currentFolder = process.cwd();
+
             const pythonScript = spawn('python', [path.join(currentFolder, 'src', 'service', 'proses_salur.py'), pathFileCSV]);
-    
+
             pythonScript.stdout.on('data', (data) => {
                 const matchStartTime = data.toString().match(/startTime:(\d+\.\d+)/); // Mendapatkan startTime dari output
                 if (matchStartTime) {
@@ -509,11 +434,11 @@ const uploadService = {
                     console.log(data.toString()); // Cetak output lainnya
                 }
             });
-    
+
             pythonScript.stderr.on('data', (data) => {
                 console.error(`stderr: ${data}`);
             });
-    
+
             pythonScript.on('close', (code) => {
                 if (code === 0) {
                     const endTime = Date.now();
@@ -523,17 +448,17 @@ const uploadService = {
                     res.status(500).send('Error importing data into PostgreSQL.');
                 }
             });
-    
-        }  catch (error) {
+
+        } catch (error) {
             console.error('Error saat memproses file CSV yang diunggah:', error);
             res.status(500).json({ error: 'Kesalahan server internal' });
         } finally {
             await db.$disconnect();
         }
-    }, 
-    processUploadedFileTebus: async (file, res) => { 
+    },
+    processUploadedFileTebus: async (file, res) => {
         let startTime; // Deklarasikan variabel startTime di luar blok try
-    
+
         try {
             // Menghubungkan ke database
             let rowsProcessed = 0;
@@ -542,24 +467,24 @@ const uploadService = {
             if (!file || !file.path || !file.mimetype || !file.originalname) {
                 throw new Error('File tidak valid.');
             }
-    
+
             // Validasi tipe file
             if (file.mimetype !== 'text/csv') {
                 throw new Error('Jenis file harus CSV.');
             }
-    
+
             const hariIni = new Date();
             const tanggalTerformat = hariIni.toISOString();
-    
+
             // Path ke file CSV yang diunggah
             const pathFileCSV = file.path;
-    
+
             await checkFileExists(pathFileCSV);
-    
-            const currentFolder = process.cwd(); 
-    
+
+            const currentFolder = process.cwd();
+
             const pythonScript = spawn('python', [path.join(currentFolder, 'src', 'service', 'proses_tebus.py'), pathFileCSV]);
-    
+
             pythonScript.stdout.on('data', (data) => {
                 const matchStartTime = data.toString().match(/startTime:(\d+\.\d+)/); // Mendapatkan startTime dari output
                 if (matchStartTime) {
@@ -569,11 +494,11 @@ const uploadService = {
                     console.log(data.toString()); // Cetak output lainnya
                 }
             });
-    
+
             pythonScript.stderr.on('data', (data) => {
                 console.error(`stderr: ${data}`);
             });
-    
+
             pythonScript.on('close', (code) => {
                 if (code === 0) {
                     const endTime = Date.now();
@@ -583,13 +508,13 @@ const uploadService = {
                     res.status(500).send('Error importing data into PostgreSQL.');
                 }
             });
-    
-        }  catch (error) {
+
+        } catch (error) {
             console.error('Error saat memproses file CSV yang diunggah:', error);
             res.status(500).json({ error: 'Kesalahan server internal' });
         } finally {
             await db.$disconnect();
         }
-    }, 
-}; 
+    },
+};
 export default uploadService;
