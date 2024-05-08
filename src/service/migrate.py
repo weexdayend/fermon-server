@@ -3,8 +3,8 @@ import psycopg2
 import socketio
 
 # Initialize socket client
-# DATABASE_URL="postgres://postgres:$4k4Admin@91.108.110.175:5432/postgres"
-connection_string = "dbname='postgres' user='postgres' host='91.108.110.175' password='$4k4Admin'"
+# DATABASE_URL="postgres://postgres:SaptaKarya2024@91.108.110.175:5432/postgres"
+connection_string = "dbname='postgres' user='postgres' host='91.108.110.175' password='SaptaKarya2024'"
 conn = psycopg2.connect(connection_string)
 
 sio = socketio.Client()
@@ -23,7 +23,7 @@ def disconnect():
     print('Disconnected from socket server')
 
 try:
-    sio.connect('https://socket.synchronice.id', transports=['websocket'])
+    sio.connect('https://socket.greatjbb.com', transports=['websocket'])
 except Exception as e:
     print(f"Error: {e}")
 

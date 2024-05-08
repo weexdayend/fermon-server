@@ -22,7 +22,7 @@ def disconnect():
     print('Disconnected from socket server')
 
 try:
-    sio.connect('https://socket.synchronice.id', transports=['websocket'])
+    sio.connect('https://socket.greatjbb.com', transports=['websocket'])
 except Exception as e:
     print(f"Error: {e}")
 

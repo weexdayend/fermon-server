@@ -9,7 +9,7 @@ import cors from "cors";
 const server = http.createServer(web);
 
 const corsOptions = {
-    origin: ['https://admin.synchronice.id', 'https://mage.synchronice.id'],
+    origin: ['https://admin.greatjbb.com', 'https://mage.greatjbb.com'],
     optionsSuccessStatus: 200
 };
 
@@ -25,7 +25,7 @@ web.listen(4000, () => {
 
 export const io = new Server(server, {
     cors: {
-        origin: ['https://admin.synchronice.id', 'https://mage.synchronice.id'],
+        origin: ['https://admin.greatjbb.com', 'https://mage.greatjbb.com'],
         methods: ['GET', 'POST'],
         allowedHeaders: ['Access-Control-Allow-Origin'],
         credentials: true

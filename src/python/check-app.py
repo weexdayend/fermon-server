@@ -6,7 +6,7 @@ from datetime import datetime
 DB_HOST = "91.108.110.175"
 DB_NAME = "postgres"
 DB_USER = "postgres"
-DB_PASSWORD = "$4k4Admin"
+DB_PASSWORD = "SaptaKarya2024"
 
 # Function to query the list of apps and their endpoints from the database
 def get_apps_from_database():
