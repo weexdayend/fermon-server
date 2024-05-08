@@ -23,7 +23,7 @@ web.listen(4000, () => {
     logger.info("Starting Fermon Server!");
 });
 
-const io = new Server(server, {
+export const io = new Server(server, {
     cors: {
         origin: ['https://admin.synchronice.id', 'https://mage.synchronice.id'],
         methods: ['GET', 'POST'],
@@ -36,8 +36,32 @@ const io = new Server(server, {
 io.on('connection', async (socket) => {
     console.log(`${socket.id} connected`);
   
-    socket.on('pyEvents', (data) => {
-        socket.broadcast.emit('pyResponse', data)
+    socket.on('import progress', (data) => {
+        socket.broadcast.emit('import progress', data)
+    });
+
+    socket.on('import completed', (data) => {
+        socket.broadcast.emit('import completed', data)
+    });
+
+    socket.on('bulk progress', (data) => {
+        socket.broadcast.emit('bulk progress', data)
+    });
+
+    socket.on('bulk completed', (data) => {
+        socket.broadcast.emit('bulk completed', data)
+    });
+
+    socket.on('migration process', (data) => {
+        socket.broadcast.emit('migration process', data)
+    });
+
+    socket.on('migration finish', (data) => {
+        socket.broadcast.emit('migration finish', data)
+    });
+
+    socket.on('example data', (data) => {
+        socket.broadcast.emit('example data', data)
     });
   
     socket.on('disconnect', () => {

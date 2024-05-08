@@ -8,57 +8,6 @@ datasource db {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model fact_report_f5 {
-  id               String    @id(map: "fact_report_f5_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at       DateTime? @db.Timestamp(6)
-  kode_provinsi    String?
-  nama_provinsi    String?
-  kode_kab_kota    String?
-  nama_kab_kota    String?
-  kode_distributor String?
-  nama_distributor String?
-  kode_produk      String?
-  nama_produk      String?
-  bulan            BigInt?
-  tahun            BigInt?
-  besaran          Float?
-  total            Float?
-  keterangan       String?
-  status_processed String?
-  processed_at     DateTime? @db.Timestamp(6)
-
-  @@unique([id])
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model fact_report_f6 {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at       DateTime? @db.Timestamp(6)
-  kode_provinsi    String?
-  nama_provinsi    String?
-  kode_kab_kota    String?
-  nama_kab_kota    String?
-  kode_distributor String?
-  nama_distributor String?
-  kode_pengecer    String?
-  nama_pengecer    String?
-  kode_produk      String?
-  nama_produk      String?
-  bulan            BigInt?
-  tahun            BigInt?
-  besaran          Float?
-  total            Float?
-  keterangan       String?
-  kode_kecamatan   String?
-  nama_kecamatan   String?
-  status_processed String?
-  processed_at     DateTime? @db.Timestamp(6)
-
-  @@unique([id])
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model mapping_profile {
   id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -88,8 +37,8 @@ model mapping_profile {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model mart_accumulation_products_f5_distributor {
-  id               String    @id(map: "mart_accumulation_products_f5_distributor_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at       DateTime? @db.Timestamp(6)
+  id               String    @id(map: "mart_accumulation_products_f5_distributor_pk") @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
   kode_distributor String?
   nama_distributor String?
   kode_produk      String?
@@ -99,16 +48,14 @@ model mart_accumulation_products_f5_distributor {
   besaran          Float?
   total            Float?
   keterangan       String?
-
-  @@unique([id])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model mart_accumulation_products_f6_kios {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at    DateTime @db.Timestamp(6)
+  id            String    @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
   kode_pengecer String?
   kode_produk   String?
   nama_produk   String?
@@ -117,14 +64,12 @@ model mart_accumulation_products_f6_kios {
   besaran       Float?
   total         Float?
   keterangan    String?
-
-  @@unique([id])
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model datawarehouse_f5 {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at       DateTime? @db.Timestamp(6)
+  id               String    @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
   kode_produsen    String?
   nama_produsen    String?
   no_f5            String?
@@ -134,26 +79,24 @@ model datawarehouse_f5 {
   nama_provinsi    String?
   kode_kab_kota    String?
   nama_kab_kota    String?
-  bulan            BigInt?
-  tahun            BigInt?
-  status           String?   @map("_status")
+  bulan            String?
+  tahun            String?
   kode_produk      String?
   nama_produk      String?
-  stok_awal        Float?
-  penebusan        Float?
-  penyaluran       Float?
-  stok_akhir       Float?
+  stok_awal        String?
+  penebusan        String?
+  penyaluran       String?
+  stok_akhir       String?
+  status_f5        String?
   keterangan       String?
-  status_processed String?
-  processed_at     DateTime? @db.Timestamp(6)
-
-  @@unique([id])
+  status_processed String?   @default("unprocessed")
+  processed_at     DateTime? @default(now()) @db.Timestamp(6)
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model datawarehouse_f6 {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at       DateTime? @db.Timestamp(6)
+  id               String    @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
   kode_produsen    String?
   nama_produsen    String?
   no_f6            String?
@@ -165,25 +108,22 @@ model datawarehouse_f6 {
   nama_kab_kota    String?
   kode_kecamatan   String?
   nama_kecamatan   String?
-  bulan            BigInt?
-  tahun            BigInt?
+  bulan            String?
+  tahun            String?
   kode_pengecer    String?
   nama_pengecer    String?
   kode_produk      String?
   nama_produk      String?
-  stok_awal        Float?
-  penebusan        Float?
-  penyaluran       Float?
-  stok_akhir       Float?
-  status           String?
+  stok_awal        String?
+  penebusan        String?
+  penyaluran       String?
+  stok_akhir       String?
+  status_f6        String?
   keterangan       String?
-  status_processed String?
+  status_processed String?   @default("unprocessed")
   processed_at     DateTime? @db.Timestamp(6)
-
-  @@unique([id])
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model fact_profile {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at DateTime? @db.Timestamp(6)
@@ -227,27 +167,21 @@ model fact_wilayah {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model mapping_petugas {
-  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id             String    @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at     DateTime? @db.Timestamp(6)
   updated_at     DateTime? @db.Timestamp(6)
   deleted_at     DateTime? @db.Timestamp(6)
-  id_petugas     String?
-  id_provinsi    String?
-  id_kabupaten   String?
-  id_kecamatan   String?
-  id_gudang      String?
-  id_distributor String?
-  id_kios        String?
+  kode_petugas   String?
+  kode_provinsi  String?
+  kode_kab_kota  String?
   kategori       String?
   status_mapping Boolean?
-
-  @@unique([id])
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model mart_accumulation_products_f5_wilayah {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at    DateTime @db.Timestamp(6)
+  id            String   @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at    DateTime @default(now()) @db.Timestamp(6)
   kode_provinsi String?
   kode_kab_kota String?
   kode_produk   String?
@@ -257,14 +191,12 @@ model mart_accumulation_products_f5_wilayah {
   besaran       Float?
   total         Float?
   keterangan    String?
-
-  @@unique([id])
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model mart_accumulation_products_f6_wilayah {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at     DateTime @db.Timestamp(6)
+  id             String    @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
   kode_provinsi  String?
   kode_kab_kota  String?
   kode_kecamatan String?
@@ -275,12 +207,10 @@ model mart_accumulation_products_f6_wilayah {
   besaran        Float?
   total          Float?
   keterangan     String?
-
-  @@unique([id])
 }
 
 model tbl_alokasi_petugas {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id          String    @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at  DateTime? @db.Date
   updated_at  DateTime? @db.Date
   deleted_at  DateTime? @db.Date
@@ -293,84 +223,51 @@ model tbl_alokasi_petugas {
   idkios      String?   @db.Uuid
   kodekios    String?
   userid      String    @db.Uuid
-
-  @@unique([id])
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model tbl_alokasi_pupuk {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at DateTime? @db.Timestamp(6)
-  updated_at DateTime? @db.Timestamp(6)
-  deleted_at DateTime? @db.Timestamp(6)
-  tahun      BigInt?
-  bulan      BigInt?
-  nominal    Decimal?  @db.Decimal
-  kode       String?
-
-  @@unique([id])
 }
 
 model tbl_distributor {
-  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at       DateTime
-  updated_at       DateTime?
-  deleted_at       DateTime?
-  kode_distributor BigInt?
-  nama_distributor String?
-  longitude        String?
-  latitude         String?
-  kodeprov         String?
-  provinsi         String?
-  kodekab          String?
-  kabupaten        String?
-  kodekec          String?
-  kecamatan        String?
-  idgudang         String?    @db.Uuid
-  userid           String?    @db.Uuid
-  tbl_kios         tbl_kios[]
-
-  @@unique([id])
+  id                 String     @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at         DateTime
+  updated_at         DateTime?
+  deleted_at         DateTime?
+  kode_distributor   String?
+  nama_distributor   String?
+  longitude          String?
+  latitude           String?
+  kodeprov           String?
+  provinsi           String?
+  kodekab            String?
+  kabupaten          String?
+  kodekec            String?
+  kecamatan          String?
+  id_gudang          String?    @db.Uuid
+  userid             String?    @db.Uuid
+  status_distributor Boolean?
+  tbl_kios           tbl_kios[]
 }
 
 model tbl_gudang {
-  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at   DateTime
-  updated_at   DateTime?
-  deleted_at   DateTime?
-  kodegudang   String?
-  gudang       String?
-  longitude    String?
-  latitude     String?
-  kodeprov     String?
-  provinsi     String?
-  kodekab      String?
-  kabupaten    String?
-  kodekec      String?
-  kecamatan    String?
-  userid       String         @db.Uuid
-  tbl_produsen tbl_produsen[]
-
-  @@unique([id])
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model tbl_harga_pupuk {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at   DateTime? @db.Timestamp(6)
-  updated_at   DateTime? @db.Timestamp(6)
-  deleted_at   DateTime? @db.Timestamp(6)
-  id_provinsi  String?
-  id_kabupaten String?
-  tahun        BigInt?
-  bulan        BigInt?
-  hargapukuk   Decimal?  @db.Decimal
-
-  @@unique([id])
+  id            String         @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at    DateTime
+  updated_at    DateTime?
+  deleted_at    DateTime?
+  kode_gudang   String?
+  nama_gudang   String?
+  longitude     String?
+  latitude      String?
+  kodeprov      String?
+  provinsi      String?
+  kodekab       String?
+  kabupaten     String?
+  kodekec       String?
+  kecamatan     String?
+  userid        String         @db.Uuid
+  status_gudang Boolean?
+  tbl_produsen  tbl_produsen[]
 }
 
 model tbl_kios {
-  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id               String           @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at       DateTime
   updated_at       DateTime?
   deleted_at       DateTime?
@@ -387,55 +284,323 @@ model tbl_kios {
   id_distributor   String?          @db.Uuid
   kode_distributor String?
   userid           String?          @db.Uuid
+  status_kios      Boolean?
   tbl_distributor  tbl_distributor? @relation(fields: [id_distributor], references: [id])
-
-  @@unique([id])
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model tbl_petugas {
-  id             String    @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at     DateTime? @db.Timestamp(6)
-  updated_at     DateTime? @db.Timestamp(6)
-  deleted_at     DateTime? @db.Timestamp(6)
-  kode_petugas   String?
-  nama_petugas   String?
-  contact        String?
-  contact_wa     String?
-  jabatan        String?
-  status_petugas Boolean?
+model fact_petugas {
+  id                 String    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at         DateTime? @db.Timestamp(6)
+  updated_at         DateTime? @db.Timestamp(6)
+  deleted_at         DateTime? @db.Timestamp(6)
+  kode_petugas       String?
+  nama_petugas       String?
+  contact            String?
+  contact_wa         String?
+  jabatan            String?
+  status_petugas     Boolean?
+  departemen         String?
+  wilker             Json?
+  status_kepagawaian String?
+  foto               String?
 
-  @@unique([id])
   @@index([id, kode_petugas, contact, contact_wa], map: "petugas_id_idx")
 }
 
 model tbl_produsen {
-  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at    DateTime
-  updated_at    DateTime?
-  deleted_at    DateTime?
-  kode_produsen String?
-  nama_produsen String?
-  idgudang      String?     @db.Uuid
-  userid        String?     @db.Uuid
-  tbl_gudang    tbl_gudang? @relation(fields: [idgudang], references: [id])
-  tbl_user      tbl_user?   @relation(fields: [userid], references: [id])
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at      DateTime
+  updated_at      DateTime?
+  deleted_at      DateTime?
+  kode_produsen   String?
+  nama_produsen   String?
+  id_gudang       String?     @db.Uuid
+  userid          String?     @db.Uuid
+  status_produsen Boolean?
+  tbl_gudang      tbl_gudang? @relation(fields: [id_gudang], references: [id], map: "tbl_produsen_idgudang_fkey")
+  tbl_user        tbl_user?   @relation(fields: [userid], references: [id])
 
   @@index([id])
 }
 
 model tbl_user {
   id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at   DateTime
+  created_at   DateTime       @default(now())
   updated_at   DateTime?
   deleted_at   DateTime?
-  email        String?
+  email        String         @unique
   hashed       String?
   image        String?
   role         String?
-  name         String?        @db.VarChar
+  name         String?
   status_user  Boolean?
   tbl_produsen tbl_produsen[]
 
-  @@unique([id])
+  @@unique([id, email])
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model file_upload {
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @db.Timestamp(6)
+  deleted_at DateTime? @db.Timestamp(6)
+  tahun      String?
+  keterangan String?
+  kode       String?
+  name_file  String?
+  file_size  String?
+  uri        String?
+  jenis_file String?
+  id         String    @id(map: "file_upload_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tmp_dwh_f5_ {
+  id               String    @id @unique(map: "_tmp_dwh_f5__unique") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  kode_produsen    String?
+  nama_produsen    String?
+  no_f5            String?
+  kode_distributor String?
+  nama_distributor String?
+  kode_provinsi    String?
+  nama_provinsi    String?
+  kode_kab_kota    String?
+  nama_kab_kota    String?
+  bulan            String?
+  tahun            String?
+  kode_produk      String?
+  nama_produk      String?
+  stok_awal        String?
+  penebusan        String?
+  penyaluran       String?
+  stok_akhir       String?
+  status_f5        String?
+  keterangan       String?
+
+  @@map("_tmp_dwh_f5_")
+}
+
+model tmp_dwh_f6_ {
+  id               String    @id(map: "_tmp_dwh_f6__pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  kode_produsen    String?
+  nama_produsen    String?
+  no_f6            String?
+  kode_distributor String?
+  nama_distributor String?
+  kode_provinsi    String?
+  nama_provinsi    String?
+  kode_kab_kota    String?
+  nama_kab_kota    String?
+  kode_kecamatan   String?
+  nama_kecamatan   String?
+  bulan            String?
+  tahun            String?
+  kode_pengecer    String?
+  nama_pengecer    String?
+  kode_produk      String?
+  nama_produk      String?
+  stok_awal        String?
+  penebusan        String?
+  penyaluran       String?
+  stok_akhir       String?
+  status_f6        String?
+  keterangan       String?
+
+  @@map("_tmp_dwh_f6_")
+}
+
+model application_relation {
+  id              String    @id(map: "application_relation_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  app_name        String    @db.VarChar
+  app_endpoint    String
+  app_status      String?
+  created_at      DateTime  @default(now()) @db.Timestamp(6)
+  time_taken      String?
+  status_relation String?
+  last_checked    DateTime? @db.Timestamp(6)
+
+  application application_status[]
+}
+
+model application_status {
+  id           String    @id(map: "application_status_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  app_id       String?   @db.Uuid
+  status_code  String?
+  last_checked DateTime? @default(now()) @db.Timestamp(6)
+  time_taken   String?
+
+  application application_relation? @relation(fields: [app_id], references: [id])
+
+  @@index([app_id, id], map: "application_status_app_id_idx")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tbl_alokasi_penjualan {
+  id                       String    @id(map: "tbl_alokasi_pupuk_pkey") @unique(map: "tbl_alokasi_pupuk_id_key") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at               DateTime? @db.Timestamp(6)
+  updated_at               DateTime? @db.Timestamp(6)
+  deleted_at               DateTime? @db.Timestamp(6)
+  tahun                    String?
+  bulan                    String?
+  besaran                  String?
+  keterangan               String?
+  kode_produk              String?
+  kode                     String?
+  kategori                 String?
+  status_alokasi_penjualan Boolean?
+}
+
+model fact_harga_produk {
+  id                  String    @id(map: "fact_harga_produk_pkey") @unique(map: "fact_harga_produk_id_key") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at          DateTime? @db.Timestamp(6)
+  updated_at          DateTime? @db.Timestamp(6)
+  deleted_at          DateTime? @db.Timestamp(6)
+  kode                String?
+  kategori            String?
+  tahun               String?
+  harga_produk        Decimal?  @db.Decimal
+  kode_produk         String?
+  status_harga_produk Boolean?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tbl_produk {
+  id            String   @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kode_produk   String?
+  nama_produk   String?
+  status_produk Boolean?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tbl_wilayah {
+  id           String  @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kode         String?
+  nama         String?
+  kode_wilayah String?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tbl_log_user {
+  id         String    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at DateTime? @db.Timestamp(6)
+  ip         String?
+  browser    String?
+  agent      String?
+}
+
+model fact_gudang {
+  kode_gudang         String? @unique
+  nama_gudang         String?
+  tahun               String?
+  alamat              String?
+  long                String?
+  lat                 String?
+  id                  String  @id(map: "fact_gudang_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pemilik             String?
+  phone_pemilik       String?
+  pengelola           String?
+  kepala_gudang       String?
+  phone_kepala_gudang String?
+
+  mapping_gudang fact_map_area[] @relation("MapGudang")
+}
+
+model fact_distributor {
+  kode_distributor String? @unique
+  nama_distributor String?
+  tahun            String?
+  alamat           String?
+  long             String?
+  lat              String?
+  pemilik          String?
+  pengelola        String?
+  tlp              String?
+  id               String  @id(map: "fact_distributor_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  mapping_distributor fact_map_area[] @relation("MapDistributor")
+}
+
+model fact_kab_kota {
+  kode_kab_kota String? @unique
+  nama_kab_kota String?
+  id            String  @id(map: "fact_kab_kota_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  mapping_kabupaten fact_map_area[] @relation("MapKabupaten")
+}
+
+model fact_kecamatan {
+  kode_kecamatan String? @unique
+  nama_kecamatan String?
+  id             String  @id(map: "fact_kecamatan_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  mapping_kecamatan fact_map_area[] @relation("MapKecamatan")
+}
+
+model fact_kios {
+  kode_pengecer String? @unique
+  nama_pengecer String?
+  tahun         String?
+  alamat        String?
+  long          String?
+  lat           String?
+  id            String  @id(map: "fact_kios_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  mapping_kios fact_map_area[] @relation("MapKios")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model fact_map_area {
+  id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // created_at     DateTime  @db.Timestamp(6)
+  // updated_at     DateTime? @db.Timestamp(6)
+  // deleted_at     DateTime? @db.Timestamp(6)
+  kode_provinsi    String? @unique
+  kode_kab_kota    String? @unique
+  kode_kecamatan   String? @unique
+  kode_gudang      String? @unique
+  kode_distributor String? @unique
+  kode_pengecer    String? @unique
+  // status         Boolean?
+  kategori         String?
+  tahun            String?
+
+  Provinsi  fact_provinsi?  @relation("MapProvinsi", fields: [kode_provinsi], references: [kode_provinsi], onDelete: NoAction, onUpdate: NoAction)
+  Kotakab   fact_kab_kota?  @relation("MapKabupaten", fields: [kode_kab_kota], references: [kode_kab_kota], onDelete: NoAction, onUpdate: NoAction)
+  Kecamatan fact_kecamatan? @relation("MapKecamatan", fields: [kode_kecamatan], references: [kode_kecamatan], onDelete: NoAction, onUpdate: NoAction)
+
+  Gudang      fact_gudang?      @relation("MapGudang", fields: [kode_gudang], references: [kode_gudang], onDelete: NoAction, onUpdate: NoAction)
+  Distributor fact_distributor? @relation("MapDistributor", fields: [kode_distributor], references: [kode_distributor], onDelete: NoAction, onUpdate: NoAction)
+  Kios        fact_kios?        @relation("MapKios", fields: [kode_pengecer], references: [kode_pengecer], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([kode_provinsi, kode_kab_kota, kode_kecamatan, kode_gudang, kode_distributor, kode_pengecer])
+}
+
+model fact_provinsi {
+  kode_provinsi String? @unique
+  nama_provinsi String?
+  id            String  @id(map: "fact_provinsi_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  mapping_provinsi fact_map_area[] @relation("MapProvinsi")
+}
+
+model fact_pupuk {
+  kode_produk String  @unique
+  nama_produk String?
+  tahun       String  @unique
+  id          String  @id(map: "fact_pupuk_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  @@unique([id, kode_produk, tahun])
+}
+
+model log_activity {
+  username      String    @unique
+  activity      String?
+  desc_activity String?
+  activity_at   DateTime? @db.Timestamp(6)
+  id            String    @id(map: "log_activity_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  @@unique([id, username])
 }

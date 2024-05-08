@@ -1,13 +1,20 @@
 import hargapupukService from "../service/hargapupuk-service.js";
 let responseSent = false;
- 
+
 const create = async (req, res, next) => {
-    try { 
+    try {
         const request = req.body;
-        const result = await hargapupukService.create(request);
-        res.status(200).json({
-            data: result
-        })
+        const result = await hargapupukService.create(request, res);
+        return result;
+    } catch (e) {
+        next(e);
+    }
+}
+const createbulk = async (req, res, next) => {
+    try {
+        const request = req.body;
+        const result = await hargapupukService.createbulk(request, res);
+        return result;
     } catch (e) {
         next(e);
     }
@@ -15,23 +22,18 @@ const create = async (req, res, next) => {
 
 const get = async (req, res, next) => {
     try {
-        // const user = req.user;
-        const id = req.body.id;
-        const result = await hargapupukService.get(id);
-        res.status(200).json({
-            data: result
-        })
+        const request = req.body;
+        const result = await hargapupukService.get(request, res);
+        return result;
     } catch (e) {
         next(e);
     }
 }
 
 const getall = async (req, res, next) => {
-    try { 
-        const result = await hargapupukService.getall();
-        res.status(200).json({
-            data: result
-        })
+    try {
+        const result = await hargapupukService.getall(res);
+        return result;
     } catch (e) {
         next(e);
     }
@@ -39,55 +41,30 @@ const getall = async (req, res, next) => {
 
 const update = async (req, res, next) => {
     try {
-        // const user = req.user;
-        // const contactId = req.params.contactId;
-        // const request = req.body;
-        // request.id = contactId;
         const request = req.body;
-        const result = await hargapupukService.update(request);
-        res.status(200).json({
-            data: result
-        })
+        const result = await hargapupukService.update(request, res);
+        return result;
     } catch (e) {
         next(e);
     }
-} 
+}
 
 const remove = async (req, res, next) => {
     try {
-        // const user = req.user;
-        const id = req.body.id;
 
-        await hargapupukService.remove(id);
-        res.status(200).json({
-            data: "Success, Deleted hargapupuk success"
-        })
-    } catch (e) {
-        next(e);
-    }
-}
- 
-
-const search = async (req, res, next) => {
-    try {
-       
         const request = req.body;
-        const result = await hargapupukService.search(request);
-        res.status(200).json({
-            data: result.data,
-            paging: result.paging
-        });
+        const result = await hargapupukService.remove(request, res);
+        return result;
     } catch (e) {
         next(e);
     }
 }
 
- 
-export default { 
-    create, 
-    get, 
-    getall, 
-    update, 
-    remove, 
-    search,  
+export default {
+    create,
+    createbulk,
+    get,
+    getall,
+    update,
+    remove,
 }

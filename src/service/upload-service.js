@@ -1,14 +1,14 @@
 import excelToJson from 'convert-excel-to-json';
+
 import { db } from "../application/database.js";
-import csv from "fast-csv";
+
 import fs from "fs";
 import path from 'path';
+
 import { promisify } from 'util';
 import { exec, spawn } from 'child_process';
-const execPromisified = promisify(exec);
 
 import { createDomain } from 'domain';
-import delay from 'delay';
 
 const checkFileExists = (filePath) => {
     return new Promise((resolve, reject) => {
@@ -311,10 +311,43 @@ const uploadService = {
             throw error;
         }
     },  */
-    processUploadedFileBulanF5: async (file, res) => {
+    processUploadedFileBulanF5: async (file, res, next) => {
         try {
             await db.$connect();
             const pythonScript = spawn('/usr/bin/python3', ['src/service/proses_f5.py', file.path]);
+
+            pythonScript.stdout.on('data', (data) => {
+                const response = data.toString();
+                const matches = response.match(/Total batches successfully inserted: (\d+)\nTotal rows: (\d+)/);
+                console.log(`stdout: ${matches}`);
+            });
+
+            pythonScript.stderr.on('data', (data) => {
+                console.error(`stderr: ${data}`);
+            });
+
+            let exitCode;
+
+            pythonScript.on('close', (code) => {
+                exitCode = code;
+                console.log('conn close', code);
+
+                // Pastikan Anda hanya mengirim tanggapan jika belum dikirim sebelumnya
+                if (!res.headersSent) {
+                    res.send(`File uploaded and data imported successfully. Time taken: ${exitCode} seconds.`);
+                }
+            });
+        } catch (error) {
+            console.error('Error saat memproses file CSV yang diunggah:', error);
+            res.status(500).json({ error: 'Kesalahan server internal' });
+        } finally {
+            await db.$disconnect();
+        }
+    },
+    processUploadedFileBulanF6: async (file, res) => {
+        try {
+            await db.$connect();
+            const pythonScript = spawn('/usr/bin/python3', ['src/service/proses_f6.py', file.path]);
 
             pythonScript.stdout.on('data', (data) => {
                 const response = data.toString();
@@ -327,68 +360,17 @@ const uploadService = {
                 console.error(`stderr: ${data}`);
             });
 
+            let exitCode;
+
             pythonScript.on('close', (code) => {
-                if (code === 0) {
-                    res.send(`File uploaded and data imported successfully.`); // Mengirimkan pesan langsung tanpa res.write dan res.end
-                } else {
-                    res.status(500).send(`Error importing data into PostgreSQL.`);
+                exitCode = code;
+                console.log('conn close', code);
+
+                // Pastikan Anda hanya mengirim tanggapan jika belum dikirim sebelumnya
+                if (!res.headersSent) {
+                    res.send(`File uploaded and data imported successfully. Time taken: ${exitCode} seconds.`);
                 }
             });
-
-        } catch (error) {
-            console.error('Error saat memproses file CSV yang diunggah:', error);
-            res.status(500).json({ error: 'Kesalahan server internal' });
-        } finally {
-            await db.$disconnect();
-        }
-    },
-    processUploadedFileBulanF6: async (file, res) => {
-        try {
-            // Menghubungkan ke database
-            let rowsProcessed = 0;
-            await db.$connect();
-            // Validasi jenis file
-            if (!file || !file.path || !file.mimetype || !file.originalname) {
-                throw new Error('File tidak valid.');
-            }
-
-            // Validasi tipe file
-            if (file.mimetype !== 'text/csv') {
-                throw new Error('Jenis file harus CSV.');
-            }
-
-            const hariIni = new Date();
-            const tanggalTerformat = hariIni.toISOString();
-
-            // Path ke file CSV yang diunggah
-            const pathFileCSV = file.path;
-
-            await checkFileExists(pathFileCSV);
-
-            const currentFolder = process.cwd();
-            const skripPythonPath = path.join(currentFolder, 'src', 'service', 'proses.py');
-
-            const perintah = `python "${skripPythonPath}" "${pathFileCSV}"`;
-
-            await executePythonScript(perintah, (output) => {
-                const match = output.match(/Processed (\d+) rows/);
-                if (match) {
-                    rowsProcessed = parseInt(match[1]);
-                    console.log(`Rows processed: ${rowsProcessed}`);
-                }
-            });
-
-            console.log('Data insertion completed.');
-            // Jalankan skrip Python dan tangkap outputnya
-            // const output = await executePythonScript(perintah);
-            // console.log("Output from Python script:", output); 
-            // Tangkap informasi jumlah baris yang sudah diproses dari output
-            // const rowsProcessed = extractRowsProcessed(output);
-            // console.log("Rows processed:", rowsProcessed);
-
-            // Hanya panggil res.send setelah semua proses selesai
-            res.send(`Upload success. ${rowsProcessed} rows processed.`);
-
         } catch (error) {
             console.error('Error saat memproses file CSV yang diunggah:', error);
             res.status(500).json({ error: 'Kesalahan server internal' });
@@ -509,6 +491,41 @@ const uploadService = {
                 }
             });
 
+        } catch (error) {
+            console.error('Error saat memproses file CSV yang diunggah:', error);
+            res.status(500).json({ error: 'Kesalahan server internal' });
+        } finally {
+            await db.$disconnect();
+        }
+    },
+    uploadbulan: async (file, tabIdentifier, res, next) => {
+        try {
+            await db.$connect();
+            // const pythonScript = spawn('/usr/bin/python3', ['src/service/proses_f6.py', file.path]);
+            const pythonScript = spawn('/usr/bin/python3', ['src/python/importbulan.py', file.path, tabIdentifier]);
+
+            pythonScript.stdout.on('data', (data) => {
+                const response = data.toString();
+                const matches = response.match(/Total batches successfully inserted: (\d+)\nTotal rows: (\d+)/);
+
+                console.log(`stdout: ${matches}`);
+            });
+
+            pythonScript.stderr.on('data', (data) => {
+                console.error(`stderr: ${data}`);
+            });
+
+            let exitCode;
+
+            pythonScript.on('close', (code) => {
+                exitCode = code;
+                console.log('conn close', code);
+
+                // Pastikan Anda hanya mengirim tanggapan jika belum dikirim sebelumnya
+                if (!res.headersSent) {
+                    res.send(`File uploaded and data imported successfully. Time taken: ${exitCode} seconds.`);
+                }
+            });
         } catch (error) {
             console.error('Error saat memproses file CSV yang diunggah:', error);
             res.status(500).json({ error: 'Kesalahan server internal' });

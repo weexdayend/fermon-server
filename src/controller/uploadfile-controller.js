@@ -43,7 +43,7 @@ const uploadbulanf5 = async (req, res, next) => {
         if (!req.file) {
             return res.status(400).send('No files were uploaded.');
         }
-        const result = await uploadService.processUploadedFileBulanF5(req.file);
+        await uploadService.processUploadedFileBulanF5(req.file, res, next);
         res.send("Upload success");
     } catch (e) {
         next(e);
@@ -54,7 +54,20 @@ const uploadbulanf6 = async (req, res, next) => {
         if (!req.file) {
             return res.status(400).send('No files were uploaded.');
         }
-        await uploadService.processUploadedFileBulanF6(req.file, res);
+        await uploadService.processUploadedFileBulanF6(req.file, res, next);
+        res.send("Upload success");
+    } catch (e) {
+        next(e);
+    }
+};
+const uploadbulan = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).send('No files were uploaded.');
+        }
+        const tabIdentifier = req.body.tabIdentifier;
+        await uploadService.uploadbulan(req.file, tabIdentifier, res, next);
+        res.send("Upload success");
     } catch (e) {
         next(e);
     }
@@ -65,4 +78,5 @@ export default {
     uploadsalur,
     uploadbulanf5,
     uploadbulanf6,
+    uploadbulan,
 }

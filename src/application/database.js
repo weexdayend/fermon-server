@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { logger } from "./logging.js";
 
-export const db = new PrismaClient();  
+export const db = new PrismaClient();
 db.$on('query', (e) => {
   logger.info(e);
 });
