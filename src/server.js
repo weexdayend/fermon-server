@@ -9,7 +9,7 @@ import cors from "cors";
 const server = http.createServer(web);
 
 const corsOptions = {
-    origin: ['https://admin.greatjbb.com', 'https://mage.greatjbb.com'],
+    origin: ['https://admin.greatjbb.com', 'https://mage.greatjbb.com', 'https://app.greatjbb.com'],
     optionsSuccessStatus: 200
 };
 

@@ -40,7 +40,7 @@ const uploaddatafile = multer({ dest: 'uploads/file/' });
 const publicRouter = new express.Router();
 
 const corsOptions = {
-    origin: ['https://admin.greatjbb.com', 'https://mage.greatjbb.com'],
+    origin: ['https://admin.greatjbb.com', 'https://mage.greatjbb.com', 'https://app.greatjbb.com'],
     optionsSuccessStatus: 200
 };
 

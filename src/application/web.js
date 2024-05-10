@@ -10,7 +10,7 @@ import cors from "cors";
 export const web = express();
 
 const corsOptions = {
-    origin: ['https://admin.greatjbb.com', 'https://mage.greatjbb.com'],
+    origin: ['https://admin.greatjbb.com', 'https://mage.greatjbb.com', 'https://app.greatjbb.com'],
     optionsSuccessStatus: 200
 };
 
