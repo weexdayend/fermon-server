@@ -386,7 +386,7 @@ publicRouter.get('/get-file/:fileName', cors(corsOptions), (req, res) => {
     }
 });
 
-publicRouter.get('/file/document/:directoryName/:fileName', cors(corsOptions), (req, res) => {
+publicRouter.get('/file/:directoryName/:fileName', cors(corsOptions), (req, res) => {
     const directoryPath = path.join(__dirname, 'uploads');
     const { directoryName, fileName } = req.params;
     const filePath = path.join(directoryPath, directoryName, fileName);

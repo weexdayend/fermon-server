@@ -300,7 +300,7 @@ const get = async (request, res) => {
                 { kategori: 'kedistributoran', uri: null, name_file: '' },
                 { kategori: 'denda', uri: null, name_file: '' },
                 { kategori: 'pengambilan', uri: null, name_file: '' },
-                { kategori: 'spbj', uri: null, name_file: '' }
+                { kategori: 'spjb', uri: null, name_file: '' }
             ];
 
             // Populate categorizedFiles with actual file data
@@ -309,7 +309,7 @@ const get = async (request, res) => {
                     'kedistributoran': 0,
                     'denda': 1,
                     'pengambilan': 2,
-                    'spbj': 3
+                    'spjb': 3
                 }[file.jenis_file];
 
                 if (categoryIndex !== undefined) {
