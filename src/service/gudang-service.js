@@ -216,8 +216,73 @@ const get = async (request, res) => {
         });
 
         // Loop melalui setiap entri gudang
+        /*   for (const gudang of gudangData) {
+              // Ambil data file terkait dengan gudang saat ini
+              let fileData = await db.file_upload.findMany({
+                  where: {
+                      kode: gudang.kode_gudang,
+                      keterangan: "Gudang"
+                  },
+                  select: {
+                      name_file: true,
+                      jenis_file: true,
+                      uri: true
+                  }
+              });
+  
+              // Rekonstruksi data jika uri null
+              fileData = fileData.map(file => ({
+                  name_file: file.name_file,
+                  kategori: file.jenis_file,
+                  uri: file.uri !== null ? file.uri : null
+              }));
+  
+              // Jika tidak ditemukan file berdasarkan kode dan keterangan, atur uri menjadi null
+              if (fileData.length === 0) {
+                  // Ambil data file dengan keterangan "Gudang" saja
+                  const nullUriFileData = await db.file_upload.findMany({
+                      where: {
+                          keterangan: "Gudang"
+                      },
+                      select: {
+                          name_file: true,
+                          jenis_file: true
+                      }
+                  });
+  
+                  // Rekonstruksi data dengan uri null
+                  fileData = nullUriFileData.map(file => ({
+                      name_file: file.name_file,
+                      kategori: file.jenis_file,
+                      uri: null
+                  }));
+              }
+  
+              // Buat objek gudang baru yang juga berisi data file
+              const gudangWithFile = {
+                  kode_gudang: gudang.kode_gudang,
+                  nama_gudang: gudang.nama_gudang,
+                  tahun: gudang.tahun,
+                  alamat: gudang.alamat,
+                  pemilik: gudang.pemilik,
+                  phone_pemilik: gudang.phone_pemilik,
+                  pengelola: gudang.pengelola,
+                  kepala_gudang: gudang.kepala_gudang,
+                  phone_kepala_gudang: gudang.phone_kepala_gudang,
+                  long: gudang.long,
+                  lat: gudang.lat,
+                  id: gudang.id,
+                  file: fileData // Tambahkan data file ke dalam objek gudang
+              };
+  
+              // Tambahkan objek gudang baru ke dalam array hasil
+              rekonstruksiData.push(gudangWithFile);
+          }
+  
+          res.status(200).send(rekonstruksiData); */
+
         for (const gudang of gudangData) {
-            // Ambil data file terkait dengan gudang saat ini
+            // Fetch file data related to the current gudang
             let fileData = await db.file_upload.findMany({
                 where: {
                     kode: gudang.kode_gudang,
@@ -230,36 +295,34 @@ const get = async (request, res) => {
                 }
             });
 
-            // Rekonstruksi data jika uri null
-            fileData = fileData.map(file => ({
-                name_file: file.name_file,
-                kategori: file.jenis_file,
-                uri: file.uri !== null ? file.uri : null
-            }));
+            // Restructure fileData to ensure entries for all categories
+            const categorizedFiles = [
+                { kategori: 'kedistributoran', uri: null, name_file: '' },
+                { kategori: 'denda', uri: null, name_file: '' },
+                { kategori: 'pengambilan', uri: null, name_file: '' },
+                { kategori: 'spbj', uri: null, name_file: '' }
+            ];
 
-            // Jika tidak ditemukan file berdasarkan kode dan keterangan, atur uri menjadi null
-            if (fileData.length === 0) {
-                // Ambil data file dengan keterangan "Gudang" saja
-                const nullUriFileData = await db.file_upload.findMany({
-                    where: {
-                        keterangan: "Gudang"
-                    },
-                    select: {
-                        name_file: true,
-                        jenis_file: true
-                    }
-                });
+            // Populate categorizedFiles with actual file data
+            for (const file of fileData) {
+                const categoryIndex = {
+                    'kedistributoran': 0,
+                    'denda': 1,
+                    'pengambilan': 2,
+                    'spbj': 3
+                }[file.jenis_file];
 
-                // Rekonstruksi data dengan uri null
-                fileData = nullUriFileData.map(file => ({
-                    name_file: file.name_file,
-                    kategori: file.jenis_file,
-                    uri: null
-                }));
+                if (categoryIndex !== undefined) {
+                    categorizedFiles[categoryIndex] = {
+                        kategori: file.jenis_file,
+                        uri: file.uri !== null ? file.uri : null,
+                        name_file: file.name_file
+                    };
+                }
             }
 
-            // Buat objek gudang baru yang juga berisi data file
-            const gudangWithFile = {
+            // Push the gudang data with file data into rekonstruksiData
+            rekonstruksiData.push({
                 kode_gudang: gudang.kode_gudang,
                 nama_gudang: gudang.nama_gudang,
                 tahun: gudang.tahun,
@@ -272,13 +335,11 @@ const get = async (request, res) => {
                 long: gudang.long,
                 lat: gudang.lat,
                 id: gudang.id,
-                file: fileData // Tambahkan data file ke dalam objek gudang
-            };
-
-            // Tambahkan objek gudang baru ke dalam array hasil
-            rekonstruksiData.push(gudangWithFile);
+                file: categorizedFiles
+            });
         }
 
+        // Send the rekonstruksiData as the response
         res.status(200).send(rekonstruksiData);
     } catch (error) {
         res.status(500).send(`Error: ${error.message}`);

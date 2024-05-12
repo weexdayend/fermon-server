@@ -903,15 +903,13 @@ const getalldistributorsum = async (request, res) => {
         await db.$transaction(async (db) => {
             mapping_profile = await db.fact_map_area.findMany({
                 where: {
-                    NOT: {
-                        kode_distributor: {
-                            equals: null,
-                            equals: ""
-                        }
-                    }
+                    NOT: [
+                        { kode_distributor: null },
+                        { kode_distributor: "" },
+                        { kode_distributor: "-" }
+                    ]
                 }
             });
-            // fact_wilayah = await db.fact_wilayah.findMany();
             fact_wilayah_prov = await db.fact_provinsi.findMany();
             fact_wilayah_kab = await db.fact_kab_kota.findMany();
             fact_wilayah_kec = await db.fact_kecamatan.findMany();
@@ -931,7 +929,7 @@ const getalldistributorsum = async (request, res) => {
         const hitungTotalbesaranYearly = (alokasi, tahun, kode) => {
             return alokasi.reduce((accumulator, currentValue) => {
                 const alokasiDate = new Date(currentValue.tahun, parseInt(currentValue.bulan) - 1);
-                if (alokasiDate.getFullYear().toString() === tahun && currentValue.kode_distributor === kode && currentValue.kode_produk === currentValue.kode_produk) {
+                if (alokasiDate.getFullYear().toString() === tahun && currentValue.kode === kode && currentValue.kode_produk === currentValue.kode_produk) {
                     accumulator += parseFloat(currentValue.besaran);
                 }
                 return accumulator;
@@ -942,7 +940,7 @@ const getalldistributorsum = async (request, res) => {
         const hitungTotalbesaranCurrMonth = (alokasi, tahun, bulan, kode) => {
             return alokasi.reduce((accumulator, currentValue) => {
                 const alokasiDate = new Date(currentValue.tahun, parseInt(currentValue.bulan) - 1);
-                if (alokasiDate.getFullYear().toString() === tahun && alokasiDate.getMonth() + 1 === bulan && currentValue.kode_distributor === kode) {
+                if (alokasiDate.getFullYear().toString() === tahun && alokasiDate.getMonth() + 1 === bulan && currentValue.kode === kode) {
                     accumulator += parseFloat(currentValue.besaran);
                 }
                 return accumulator;
@@ -953,7 +951,7 @@ const getalldistributorsum = async (request, res) => {
         const hitungTotalbesaranMTM = (alokasi, tahun, bulan, kode) => {
             return alokasi.reduce((accumulator, currentValue) => {
                 const alokasiDate = new Date(currentValue.tahun, parseInt(currentValue.bulan) - 1);
-                if (alokasiDate.getFullYear().toString() === tahun && parseInt(currentValue.bulan) <= bulan && currentValue.kode_distributor === kode) {
+                if (alokasiDate.getFullYear().toString() === tahun && parseInt(currentValue.bulan) <= bulan && currentValue.kode === kode) {
                     accumulator += parseFloat(currentValue.besaran);
                 }
                 return accumulator;
@@ -962,14 +960,13 @@ const getalldistributorsum = async (request, res) => {
 
         // Membentuk ulang data sesuai dengan format yang diinginkan
         const rekonstruksiData = alokasi.reduce((accumulator, currentValue) => {
-            // Find the corresponding profile for the current lokasiItem
-            const profile = fact_profile.find(profileItem => profileItem.kode_distributor === currentValue.kode_distributor);
+
+            const profile = fact_profile.find(profileItem => profileItem.kode_distributor === currentValue.kode);
 
             if (profile) {
-                // Find the corresponding mappingData for the current profile
+
                 const mappingData = mapping_profile.find(item => item.kode_distributor === profile.kode_distributor);
 
-                // Inisialisasi objek untuk menyimpan informasi wilayah
                 let wilayahInfo = {
                     kode_provinsi: "",
                     provinsi: "",
@@ -1012,7 +1009,7 @@ const getalldistributorsum = async (request, res) => {
                 const mtm = hitungTotalbesaranMTM([currentValue], formattahun, parseInt(formatbulan), profile.kode_distributor);
 
                 // Generate key for grouping
-                const groupKey = `${currentValue.keterangan}_${currentValue.kode_produk}_${currentValue.kode_distributor}_${currentValue.tahun}`;
+                const groupKey = `${currentValue.keterangan}_${currentValue.kode_produk}_${currentValue.kode}_${currentValue.tahun}`;
 
                 // Check if the group already exists, if not, create a new one
                 if (!accumulator[groupKey]) {
@@ -1025,7 +1022,7 @@ const getalldistributorsum = async (request, res) => {
                         ...wilayahInfo,
                         keterangan: currentValue.keterangan,
                         kode_produk: currentValue.kode_produk,
-                        kode_distributor: currentValue.kode_distributor,
+                        kode_distributor: currentValue.kode,
                         tahun: currentValue.tahun,
                         yearly: yearly,
                         curr_month: curr_month,
@@ -1319,11 +1316,14 @@ const getsumwilayah = async (request, res) => {
 
 const getsumwtebusjual = async (request, res) => {
     const { kode, tahun } = request;
+    const today = new Date();
+    const bulanjalan = (today.getMonth() + 1).toString();
     try {
         let wheremapping = {
             keterangan: {
                 in: ["Tebus", "Jual"]
-            }
+            },
+            bulan: bulanjalan
         };
 
 

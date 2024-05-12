@@ -363,8 +363,64 @@ const get = async (request, res) => {
         });
 
         // Loop melalui setiap entri gudang
+        /*  for (const kios of kiosData) {
+             // Ambil data file terkait dengan gudang saat ini
+             let fileData = await db.file_upload.findMany({
+                 where: {
+                     kode: kios.kode_pengecer,
+                     keterangan: "Kios"
+                 },
+                 select: {
+                     name_file: true,
+                     jenis_file: true,
+                     uri: true
+                 }
+             });
+ 
+             fileData = fileData.map(file => ({
+                 name_file: file.name_file,
+                 kategori: file.jenis_file,
+                 uri: file.uri !== null ? file.uri : null
+             }));
+ 
+             if (fileData.length === 0) {
+                 const nullUriFileData = await db.file_upload.findMany({
+                     where: {
+                         keterangan: "Kios"
+                     },
+                     select: {
+                         name_file: true,
+                         jenis_file: true
+                     }
+                 });
+ 
+                 // Rekonstruksi data dengan uri null
+                 fileData = nullUriFileData.map(file => ({
+                     name_file: file.name_file,
+                     kategori: file.jenis_file,
+                     uri: null
+                 }));
+             }
+ 
+             // Buat objek gudang baru yang juga berisi data file
+             const kiosWithFile = {
+                 kode_pengecer: kios.kode_pengecer,
+                 nama_pengecer: kios.nama_pengecer,
+                 tahun: kios.tahun,
+                 alamat: kios.alamat, 
+                 long: kios.long,
+                 lat: kios.lat,
+                 id: kios.id,
+                 file: fileData // Tambahkan data file ke dalam objek gudang
+             };
+ 
+             // Tambahkan objek gudang baru ke dalam array hasil
+             rekonstruksiData.push(kiosWithFile);
+         }
+ 
+         res.status(200).send(rekonstruksiData); */
         for (const kios of kiosData) {
-            // Ambil data file terkait dengan gudang saat ini
+            // Fetch file data related to the current gudang
             let fileData = await db.file_upload.findMany({
                 where: {
                     kode: kios.kode_pengecer,
@@ -377,47 +433,56 @@ const get = async (request, res) => {
                 }
             });
 
-            fileData = fileData.map(file => ({
-                name_file: file.name_file,
-                kategori: file.jenis_file,
-                uri: file.uri !== null ? file.uri : null
-            }));
+            // Restructure fileData to ensure entries for all categories
+            const categorizedFiles = [
+                { kategori: 'stokpupuk', uri: null, name_file: '' },
+                { kategori: 'poktan', uri: null, name_file: '' },
+                { kategori: 'daftarpetani', uri: null, name_file: '' },
+                { kategori: 'penyaluran', uri: null, name_file: '' },
+                { kategori: 'distributor', uri: null, name_file: '' },
+                { kategori: 'spbj', uri: null, name_file: '' },
+                { kategori: 'nib', uri: null, name_file: '' },
+                { kategori: 'siup', uri: null, name_file: '' },
+                { kategori: 'tdp', uri: null, name_file: '' },
+                { kategori: 'rekomendasi', uri: null, name_file: '' }
+            ];
 
-            if (fileData.length === 0) {
-                const nullUriFileData = await db.file_upload.findMany({
-                    where: {
-                        keterangan: "Kios"
-                    },
-                    select: {
-                        name_file: true,
-                        jenis_file: true
-                    }
-                });
+            // Populate categorizedFiles with actual file data
+            for (const file of fileData) {
+                const categoryIndex = {
+                    'stokpupuk': 0,
+                    'poktan': 1,
+                    'daftarpetani': 2,
+                    'penyaluran': 3,
+                    'distributor': 4,
+                    'spbj': 5,
+                    'nib': 6,
+                    'siup': 7,
+                    'tdp': 8,
+                    'rekomendasi': 9
+                }[file.jenis_file];
 
-                // Rekonstruksi data dengan uri null
-                fileData = nullUriFileData.map(file => ({
-                    name_file: file.name_file,
-                    kategori: file.jenis_file,
-                    uri: null
-                }));
+                if (categoryIndex !== undefined) {
+                    categorizedFiles[categoryIndex] = {
+                        kategori: file.jenis_file,
+                        uri: file.uri !== null ? file.uri : null,
+                        name_file: file.name_file
+                    };
+                }
             }
 
-            // Buat objek gudang baru yang juga berisi data file
-            const kiosWithFile = {
+            // Push the gudang data with file data into rekonstruksiData
+            rekonstruksiData.push({
                 kode_pengecer: kios.kode_pengecer,
                 nama_pengecer: kios.nama_pengecer,
                 tahun: kios.tahun,
-                alamat: kios.alamat, 
+                alamat: kios.alamat,
                 long: kios.long,
                 lat: kios.lat,
                 id: kios.id,
-                file: fileData // Tambahkan data file ke dalam objek gudang
-            };
-
-            // Tambahkan objek gudang baru ke dalam array hasil
-            rekonstruksiData.push(kiosWithFile);
+                file: categorizedFiles
+            });
         }
-
         res.status(200).send(rekonstruksiData);
     } catch (error) {
         res.status(500).send(`Error: ${error.message}`);

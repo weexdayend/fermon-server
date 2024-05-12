@@ -385,6 +385,21 @@ publicRouter.get('/get-file/:fileName', cors(corsOptions), (req, res) => {
         res.status(500).json({ message: 'Internal server error.' });
     }
 });
+
+publicRouter.get('/file/document/:directoryName/:fileName', cors(corsOptions), (req, res) => {
+    const directoryPath = path.join(__dirname, 'uploads');
+    const { directoryName, fileName } = req.params;
+    const filePath = path.join(directoryPath, directoryName, fileName);
+
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error('Error sending file:', err);
+            res.status(err.status).end();
+        } else {
+            console.log('File sent successfully:', filePath);
+        }
+    });
+})
 /* publicRouter.post('/migrate', cors(corsOptions), async(req, res) => {
     const { tabIdentifier } = req.body;
 

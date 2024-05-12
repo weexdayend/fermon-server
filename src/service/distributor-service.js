@@ -320,7 +320,7 @@ const get = async (request, res) => {
         });
 
         // Loop melalui setiap entri gudang
-        for (const distributor of distributorData) {
+        /* for (const distributor of distributorData) {
             // Ambil data file terkait dengan gudang saat ini
             let fileData = await db.file_upload.findMany({
                 where: {
@@ -378,6 +378,64 @@ const get = async (request, res) => {
             rekonstruksiData.push(distributorWithFile);
         }
 
+        res.status(200).send(rekonstruksiData); */
+        for (const distributor of distributorData) {
+            // Fetch file data related to the current gudang
+            let fileData = await db.file_upload.findMany({
+                where: {
+                    kode: distributor.kode_distributor,
+                    keterangan: "Kios"
+                },
+                select: {
+                    name_file: true,
+                    jenis_file: true,
+                    uri: true
+                }
+            });
+
+            // Restructure fileData to ensure entries for all categories
+            const categorizedFiles = [
+                { kategori: 'kedistributoran', uri: null, name_file: '' },
+                { kategori: 'denda', uri: null, name_file: '' },
+                { kategori: 'pengambilan', uri: null, name_file: '' },
+                { kategori: 'spjb', uri: null, name_file: '' },
+                { kategori: 'bankgaransi', uri: null, name_file: '' }
+            ];
+
+            // Populate categorizedFiles with actual file data
+            for (const file of fileData) {
+                const categoryIndex = {
+                    'kedistributoran': 0,
+                    'denda': 1,
+                    'pengambilan': 2,
+                    'spjb': 3,
+                    'bankgaransi': 4
+                }[file.jenis_file];
+
+                if (categoryIndex !== undefined) {
+                    categorizedFiles[categoryIndex] = {
+                        kategori: file.jenis_file,
+                        uri: file.uri !== null ? file.uri : null,
+                        name_file: file.name_file
+                    };
+                }
+            }
+
+            // Push the gudang data with file data into rekonstruksiData
+            rekonstruksiData.push({
+                kode_distributor: distributor.kode_distributor,
+                nama_distributor: distributor.nama_distributor,
+                tahun: distributor.tahun,
+                alamat: distributor.alamat,
+                pemilik: distributor.pemilik,
+                pengelola: distributor.pengelola,
+                tlp: distributor.tlp,
+                long: distributor.long,
+                lat: distributor.lat,
+                id: distributor.id,
+                file: categorizedFiles
+            });
+        }
         res.status(200).send(rekonstruksiData);
     } catch (error) {
         res.status(500).send(`Error: ${error.message}`);
