@@ -248,7 +248,7 @@ const remove = async (request, res) => {
         res.status(500).send(`Error: ${error.message}`); // Menambahkan pesan kesalahan yang lebih deskriptif
     }
 } */
-const get = async (request, res) => {
+/* const get = async (request, res) => {
     const { kode, tahun } = request;
 
     try {
@@ -286,6 +286,88 @@ const get = async (request, res) => {
                 nama_distributor: distributor.nama_distributor,
                 tahun: distributor.tahun,
                 alamat: distributor.alamat,
+                long: distributor.long,
+                lat: distributor.lat,
+                id: distributor.id,
+                file: fileData // Tambahkan data file ke dalam objek gudang
+            };
+
+            // Tambahkan objek gudang baru ke dalam array hasil
+            rekonstruksiData.push(distributorWithFile);
+        }
+
+        res.status(200).send(rekonstruksiData);
+    } catch (error) {
+        res.status(500).send(`Error: ${error.message}`);
+    }
+} */
+
+const get = async (request, res) => {
+    const { kode, tahun } = request;
+
+    try {
+        let rekonstruksiData = [];
+        let whereDistibutor = {};
+        if (kode !== '' && kode !== null) {
+            whereDistibutor.kode_distributor = kode;
+        }
+        if (tahun !== '' && tahun !== null) {
+            whereDistibutor.tahun = tahun;
+        }
+        // Ambil data gudang berdasarkan kode dan tahun
+        const distributorData = await db.fact_distributor.findMany({
+            where: whereDistibutor
+        });
+
+        // Loop melalui setiap entri gudang
+        for (const distributor of distributorData) {
+            // Ambil data file terkait dengan gudang saat ini
+            let fileData = await db.file_upload.findMany({
+                where: {
+                    kode: distributor.kode_distributor,
+                    keterangan: "Distributor"
+                },
+                select: {
+                    name_file: true,
+                    jenis_file: true,
+                    uri: true
+                }
+            });
+
+            fileData = fileData.map(file => ({
+                name_file: file.name_file,
+                kategori: file.jenis_file,
+                uri: file.uri !== null ? file.uri : null
+            }));
+
+            if (fileData.length === 0) {
+                const nullUriFileData = await db.file_upload.findMany({
+                    where: {
+                        keterangan: "Distributor"
+                    },
+                    select: {
+                        name_file: true,
+                        jenis_file: true
+                    }
+                });
+
+                // Rekonstruksi data dengan uri null
+                fileData = nullUriFileData.map(file => ({
+                    name_file: file.name_file,
+                    kategori: file.jenis_file,
+                    uri: null
+                }));
+            }
+
+            // Buat objek gudang baru yang juga berisi data file
+            const distributorWithFile = {
+                kode_distributor: distributor.kode_distributor,
+                nama_distributor: distributor.nama_distributor,
+                tahun: distributor.tahun,
+                alamat: distributor.alamat,
+                pemilik: distributor.pemilik,
+                pengelola: distributor.pengelola,
+                tlp: distributor.tlp,
                 long: distributor.long,
                 lat: distributor.lat,
                 id: distributor.id,

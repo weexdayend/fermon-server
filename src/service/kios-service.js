@@ -292,7 +292,7 @@ const remove = async (request, res) => {
         res.status(500).send(`Error: ${error.message}`); // Menambahkan pesan kesalahan yang lebih deskriptif
     }
 } */
-const get = async (request, res) => {
+/* const get = async (request, res) => {
     const { kode, tahun } = request;
 
     try {
@@ -337,6 +337,84 @@ const get = async (request, res) => {
             };
 
             // Tambahkan objek kios baru ke dalam array hasil
+            rekonstruksiData.push(kiosWithFile);
+        }
+
+        res.status(200).send(rekonstruksiData);
+    } catch (error) {
+        res.status(500).send(`Error: ${error.message}`);
+    }
+} */
+const get = async (request, res) => {
+    const { kode, tahun } = request;
+
+    try {
+        let rekonstruksiData = [];
+        let whereKios = {};
+        if (kode !== '' && kode !== null) {
+            whereKios.kode_pengecer = kode;
+        }
+        if (tahun !== '' && tahun !== null) {
+            whereKios.tahun = tahun;
+        }
+        // Ambil data gudang berdasarkan kode dan tahun
+        const kiosData = await db.fact_kios.findMany({
+            where: whereKios
+        });
+
+        // Loop melalui setiap entri gudang
+        for (const kios of kiosData) {
+            // Ambil data file terkait dengan gudang saat ini
+            let fileData = await db.file_upload.findMany({
+                where: {
+                    kode: kios.kode_pengecer,
+                    keterangan: "Kios"
+                },
+                select: {
+                    name_file: true,
+                    jenis_file: true,
+                    uri: true
+                }
+            });
+
+            fileData = fileData.map(file => ({
+                name_file: file.name_file,
+                kategori: file.jenis_file,
+                uri: file.uri !== null ? file.uri : null
+            }));
+
+            if (fileData.length === 0) {
+                const nullUriFileData = await db.file_upload.findMany({
+                    where: {
+                        keterangan: "Kios"
+                    },
+                    select: {
+                        name_file: true,
+                        jenis_file: true
+                    }
+                });
+
+                // Rekonstruksi data dengan uri null
+                fileData = nullUriFileData.map(file => ({
+                    name_file: file.name_file,
+                    kategori: file.jenis_file,
+                    uri: null
+                }));
+            }
+
+            // Buat objek gudang baru yang juga berisi data file
+            const kiosWithFile = {
+                kode_pengecer: kios.kode_pengecer,
+                nama_pengecer: kios.nama_pengecer,
+                tahun: kios.tahun,
+                alamat: kios.alamat, 
+                long: kios.long,
+                lat: kios.lat,
+                id: kios.id,
+                file: fileData // Tambahkan data file ke dalam objek gudang
+            };
+
+            // Tambahkan objek gudang baru ke dalam array hasil
             rekonstruksiData.push(kiosWithFile);
         }
 

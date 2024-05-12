@@ -35,7 +35,7 @@ export const io = new Server(server, {
 
 io.on('connection', async (socket) => {
     console.log(`${socket.id} connected`);
-  
+
     socket.on('import progress', (data) => {
         socket.broadcast.emit('import progress', data)
     });
@@ -63,7 +63,7 @@ io.on('connection', async (socket) => {
     socket.on('example data', (data) => {
         socket.broadcast.emit('example data', data)
     });
-  
+
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });

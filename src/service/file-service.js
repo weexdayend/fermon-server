@@ -195,16 +195,20 @@ const updateWithFile = async (req, file) => {
 };
 const get = async (request, res) => {
     const {
-        tahun
+        tahun,
+        kode
     } = request; // Pastikan request telah di-parse dengan benar
 
-    try {
+    /* try {
         let rekonstruksiData;
 
         // Membuat objek untuk filter
         let wherefilter = {};
         if (tahun !== '' && tahun !== null) {
-            wherefilter.tahun = kode;
+            wherefilter.tahun = tahun;
+        }
+        if (kode !== '' && kode !== null) {
+            wherefilter.kode = kode;
         }
 
         await db.$transaction(async (db) => {
@@ -212,11 +216,81 @@ const get = async (request, res) => {
             rekonstruksiData = await db.file_upload.findMany({
                 where: wherefilter
             });
+
+
         });
 
         res.status(200).send(rekonstruksiData);
     } catch (error) {
         res.status(500).send(`Error: ${error.message}`); // Menambahkan pesan kesalahan yang lebih deskriptif
+    } */
+    try {
+        let allRekonstruksiData = [];
+
+        let wherefilter = {};
+        if (tahun !== '' && tahun !== null) {
+            wherefilter.tahun = tahun;
+        }
+        if (kode !== '' && kode !== null) {
+            wherefilter.kode = kode;
+        }
+        await db.$transaction(async (db) => {
+            const [fileupload, gudang, distributor, kios] = await Promise.all([
+                db.file_upload.findMany({
+                    where: wherefilter
+                }),
+                db.fact_gudang.findMany({
+                    select: {
+                        id: true,
+                        kode_gudang: true,
+                        nama_gudang: true
+                    }
+                }),
+                db.fact_distributor.findMany({
+                    select: {
+                        id: true,
+                        kode_distributor: true,
+                        nama_distributor: true
+                    }
+                }),
+                db.fact_kios.findMany({
+                    select: {
+                        id: true,
+                        kode_pengecer: true,
+                        nama_pengecer: true
+                    }
+                })
+            ]);
+
+            allRekonstruksiData = fileupload.map(itemfile => {
+
+
+                const wilayahProvinsi = wilayah.find(w => w.kode_wilayah === distributor.kodeprov);
+                const wilayahKabupaten = wilayah.find(w => w.kode_wilayah === distributor.kodekab);
+                const wilayahKecamatan = wilayah.find(w => w.kode_wilayah === distributor.kodekec);
+                const gudangDistributor = gudang.find(g => g.id === distributor.id_gudang);
+
+                return {
+                    kode_distributor: distributor.kode_distributor,
+                    nama_distributor: distributor.nama_distributor,
+                    longitude: distributor.longitude,
+                    latitude: distributor.latitude,
+                    kodeprov: distributor.kodeprov,
+                    provinsi: wilayahProvinsi ? wilayahProvinsi.nama : null,
+                    kodekab: distributor.kodekab,
+                    kabupaten: wilayahKabupaten ? wilayahKabupaten.nama : null,
+                    kodekec: distributor.kodekec,
+                    kecamatan: wilayahKecamatan ? wilayahKecamatan.nama : null,
+                    id_gudang: distributor.id_gudang,
+                    nama_gudang: gudangDistributor ? gudangDistributor.nama_gudang : null,
+                    status_distributor: distributor.status_distributor
+                };
+            });
+        });
+
+        res.status(200).send(allRekonstruksiData);
+    } catch (error) {
+        res.status(500).send(`${error}`);
     }
 }
 const remove = async (request, res) => {

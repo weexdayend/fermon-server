@@ -218,7 +218,7 @@ const get = async (request, res) => {
         // Loop melalui setiap entri gudang
         for (const gudang of gudangData) {
             // Ambil data file terkait dengan gudang saat ini
-            const fileData = await db.file_upload.findMany({
+            let fileData = await db.file_upload.findMany({
                 where: {
                     kode: gudang.kode_gudang,
                     keterangan: "Gudang"
@@ -229,6 +229,34 @@ const get = async (request, res) => {
                     uri: true
                 }
             });
+
+            // Rekonstruksi data jika uri null
+            fileData = fileData.map(file => ({
+                name_file: file.name_file,
+                kategori: file.jenis_file,
+                uri: file.uri !== null ? file.uri : null
+            }));
+
+            // Jika tidak ditemukan file berdasarkan kode dan keterangan, atur uri menjadi null
+            if (fileData.length === 0) {
+                // Ambil data file dengan keterangan "Gudang" saja
+                const nullUriFileData = await db.file_upload.findMany({
+                    where: {
+                        keterangan: "Gudang"
+                    },
+                    select: {
+                        name_file: true,
+                        jenis_file: true
+                    }
+                });
+
+                // Rekonstruksi data dengan uri null
+                fileData = nullUriFileData.map(file => ({
+                    name_file: file.name_file,
+                    kategori: file.jenis_file,
+                    uri: null
+                }));
+            }
 
             // Buat objek gudang baru yang juga berisi data file
             const gudangWithFile = {
@@ -511,15 +539,18 @@ const getdistributor = async (request, res) => {
     }
 } */
 const update = async (request, res) => {
-
     const {
         id,
-        kode_gudang,
+        kode,
         nama_gudang,
-        tahun,
         alamat,
         long,
-        lat
+        lat,
+        pemilik,
+        phone_pemilik,
+        pengelola,
+        kepala_gudang,
+        phone_kepala_gudang
     } = request;
 
     try {
@@ -532,28 +563,61 @@ const update = async (request, res) => {
             });
 
             if (!existingGudang) {
-                throw new Error('distributor not found');
+                throw new Error('gudang not found');
             }
 
-            updateGudang = await db.fact_gudang.update({
-                where: {
-                    id: id
-                },
-                data: {
-                    kode_gudang: kode_gudang,
-                    nama_gudang: nama_gudang,
-                    tahun: tahun,
-                    alamat: alamat,
-                    long: long,
-                    lat: lat
-                }
-            });
+            // Persiapkan data untuk pembaruan
+            const updateData = {};
+            if (kode !== '' && kode !== null) {
+                updateData.kode_gudang = kode;
+            }
+            if (nama_gudang !== '' && nama_gudang !== null) {
+                updateData.nama_gudang = nama_gudang;
+            }
+            if (alamat !== '' && alamat !== null) {
+                updateData.alamat = alamat;
+            }
+            if (long !== '' && long !== null) {
+                updateData.long = long;
+            }
+            if (lat !== '' && lat !== null) {
+                updateData.lat = lat;
+            }
+            if (pemilik !== '' && pemilik !== null) {
+                updateData.pemilik = pemilik;
+            }
+            if (phone_pemilik !== '' && phone_pemilik !== null) {
+                updateData.phone_pemilik = phone_pemilik;
+            }
+            if (pengelola !== '' && pengelola !== null) {
+                updateData.pengelola = pengelola;
+            }
+            if (kepala_gudang !== '' && kepala_gudang !== null) {
+                updateData.kepala_gudang = kepala_gudang;
+            }
+            if (phone_kepala_gudang !== '' && phone_kepala_gudang !== null) {
+                updateData.phone_kepala_gudang = phone_kepala_gudang;
+            }
+
+            // Lakukan pembaruan jika ada data untuk diperbarui
+            if (Object.keys(updateData).length !== 0) {
+                updateGudang = await db.fact_gudang.update({
+                    where: {
+                        id: id
+                    },
+                    data: updateData
+                });
+            } else {
+                // Jika tidak ada data untuk diperbarui, kembalikan gudang yang sudah ada
+                updateGudang = existingGudang;
+            }
         });
         res.status(200).send(updateGudang);
     } catch (error) {
         res.status(500).send(`${error}`);
     }
 }
+
 const remove = async (request, res) => {
 
     try {
