@@ -90,6 +90,26 @@ const getsumwilayah = async (req, res, next) => {
         next(e);
     }
 }
+const getsumwilayahf5 = async (req, res, next) => {
+    try {
+
+        const request = req.body;
+        const result = await alokasiService.getsumwilayahf5(request, res);
+        return result;
+    } catch (e) {
+        next(e);
+    }
+}
+const getsumwilayahf6 = async (req, res, next) => {
+    try {
+
+        const request = req.body;
+        const result = await alokasiService.getsumwilayahf6(request, res);
+        return result;
+    } catch (e) {
+        next(e);
+    }
+}
 const getsumwtebusjual = async (req, res, next) => {
     try {
 
@@ -131,6 +151,8 @@ export default {
     getalldistributors,
     getalldistributorsum,
     getsumwilayah,
+    getsumwilayahf5,
+    getsumwilayahf6,
     getsumwtebusjual,
     get,
     getall,

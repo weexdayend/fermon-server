@@ -1313,6 +1313,192 @@ const getsumwilayah = async (request, res) => {
         res.status(500).send("Terjadi kesalahan dalam pemrosesan data.");
     }
 };
+const getsumwilayahf5 = async (request, res) => {
+    const { kode, tahun } = request;
+    try {
+        let wheremart = { keterangan: "Penyaluran" };
+
+        if (kode !== '' && kode !== null) {
+            wheremart.kode_kab_kota = kode;
+        }
+        if (tahun !== '' && tahun !== null) {
+            wheremart.tahun = tahun;
+        }
+
+        const [mart, fact_wilayah_prov, fact_wilayah_kab, produk] = await Promise.all([
+            db.mart_accumulation_products_f5_wilayah.findMany({ where: wheremart }),
+            db.fact_provinsi.findMany(),
+            db.fact_kab_kota.findMany(),
+            db.fact_pupuk.findMany()
+        ]);
+
+        const formattahun = new Date().getFullYear().toString();
+        const formatbulan = (new Date().getMonth() + 1).toString();
+
+        const rekonstruksiData = mart.reduce((accumulator, currentValue) => {
+            const nama_provinsi = fact_wilayah_prov.find(pv => pv.kode_provinsi === currentValue.kode_provinsi)?.nama_provinsi || null;
+            const nama_kab_kota = fact_wilayah_kab.find(kb => kb.kode_kab_kota === currentValue.kode_kab_kota)?.nama_kab_kota || null;
+
+            const produkData = produk.find(item => item.kode_produk === currentValue.kode_produk);
+
+            const groupKey = `${currentValue.keterangan}_${currentValue.kode_produk}_${currentValue.kode_kab_kota}_${currentValue.tahun}`;
+
+            const hitungTotalbesaranYearly = (mart, tahun, kode) => {
+                return mart.reduce((accumulator, currentValue) => {
+                    const alokasiDate = new Date(currentValue.tahun, parseInt(currentValue.bulan) - 1);
+                    if (alokasiDate.getFullYear().toString() === tahun && currentValue.kode_kab_kota === kode && currentValue.kode_produk === currentValue.kode_produk) {
+                        accumulator += parseFloat(currentValue.besaran);
+                    }
+                    return accumulator;
+                }, 0);
+            };
+
+            const hitungTotalbesaranCurrMonth = (mart, tahun, bulan, kode) => {
+                return mart.reduce((accumulator, currentValue) => {
+                    const alokasiDate = new Date(currentValue.tahun, parseInt(currentValue.bulan) - 1);
+                    if (alokasiDate.getFullYear().toString() === tahun && alokasiDate.getMonth() + 1 === bulan && currentValue.kode_kab_kota === kode) {
+                        accumulator += parseFloat(currentValue.besaran);
+                    }
+                    return accumulator;
+                }, 0);
+            };
+
+            const hitungTotalbesaranMTM = (mart, tahun, bulan, kode) => {
+                return mart.reduce((accumulator, currentValue) => {
+                    const alokasiDate = new Date(currentValue.tahun, parseInt(currentValue.bulan) - 1);
+                    if (alokasiDate.getFullYear().toString() === tahun && parseInt(currentValue.bulan) <= bulan && currentValue.kode_kab_kota === kode) {
+                        accumulator += parseFloat(currentValue.besaran);
+                    }
+                    return accumulator;
+                }, 0);
+            };
+
+            const yearly = hitungTotalbesaranYearly([currentValue], tahun.toString(), currentValue.kode_kab_kota);
+            const curr_month = hitungTotalbesaranCurrMonth([currentValue], tahun.toString(), parseInt(formatbulan), currentValue.kode_kab_kota);
+            const mtm = hitungTotalbesaranMTM([currentValue], tahun.toString(), parseInt(formatbulan), currentValue.kode_kab_kota);
+
+            if (!accumulator[groupKey]) {
+                accumulator[groupKey] = {
+                    kode: currentValue.kode_kab_kota,
+                    nama_provinsi: nama_provinsi,
+                    nama_kab_kota: nama_kab_kota,
+                    keterangan: currentValue.keterangan,
+                    tahun: currentValue.tahun,
+                    yearly: yearly,
+                    curr_month: curr_month,
+                    mtm: mtm,
+                    nama_produk: produkData?.nama_produk || "",
+                    kode_produk: produkData?.kode_produk || ""
+                };
+            } else {
+                accumulator[groupKey].yearly += yearly;
+                accumulator[groupKey].curr_month += curr_month;
+                accumulator[groupKey].mtm += mtm;
+            }
+
+            return accumulator;
+        }, {});
+
+        const resultArray = Object.values(rekonstruksiData);
+        res.status(200).send(resultArray);
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send("Terjadi kesalahan dalam pemrosesan data.");
+    }
+};
+const getsumwilayahf6 = async (request, res) => {
+    const { kode, tahun } = request;
+    try {
+        let wheremart = { keterangan: "Penyaluran" };
+
+        if (kode !== '' && kode !== null) {
+            wheremart.kode_kab_kota = kode;
+        }
+        if (tahun !== '' && tahun !== null) {
+            wheremart.tahun = tahun;
+        }
+
+        const [mart, fact_wilayah_prov, fact_wilayah_kab, produk] = await Promise.all([
+            db.mart_accumulation_products_f6_wilayah.findMany({ where: wheremart }),
+            db.fact_provinsi.findMany(),
+            db.fact_kab_kota.findMany(),
+            db.fact_pupuk.findMany()
+        ]);
+
+        const formattahun = new Date().getFullYear().toString();
+        const formatbulan = (new Date().getMonth() + 1).toString();
+
+        const rekonstruksiData = mart.reduce((accumulator, currentValue) => {
+            const nama_provinsi = fact_wilayah_prov.find(pv => pv.kode_provinsi === currentValue.kode_provinsi)?.nama_provinsi || null;
+            const nama_kab_kota = fact_wilayah_kab.find(kb => kb.kode_kab_kota === currentValue.kode_kab_kota)?.nama_kab_kota || null;
+
+            const produkData = produk.find(item => item.kode_produk === currentValue.kode_produk);
+
+            const groupKey = `${currentValue.keterangan}_${currentValue.kode_produk}_${currentValue.kode_kab_kota}_${currentValue.tahun}`;
+
+            const hitungTotalbesaranYearly = (mart, tahun, kode) => {
+                return mart.reduce((accumulator, currentValue) => {
+                    const alokasiDate = new Date(currentValue.tahun, parseInt(currentValue.bulan) - 1);
+                    if (alokasiDate.getFullYear().toString() === tahun && currentValue.kode_kab_kota === kode && currentValue.kode_produk === currentValue.kode_produk) {
+                        accumulator += parseFloat(currentValue.besaran);
+                    }
+                    return accumulator;
+                }, 0);
+            };
+
+            const hitungTotalbesaranCurrMonth = (mart, tahun, bulan, kode) => {
+                return mart.reduce((accumulator, currentValue) => {
+                    const alokasiDate = new Date(currentValue.tahun, parseInt(currentValue.bulan) - 1);
+                    if (alokasiDate.getFullYear().toString() === tahun && alokasiDate.getMonth() + 1 === bulan && currentValue.kode_kab_kota === kode) {
+                        accumulator += parseFloat(currentValue.besaran);
+                    }
+                    return accumulator;
+                }, 0);
+            };
+
+            const hitungTotalbesaranMTM = (mart, tahun, bulan, kode) => {
+                return mart.reduce((accumulator, currentValue) => {
+                    const alokasiDate = new Date(currentValue.tahun, parseInt(currentValue.bulan) - 1);
+                    if (alokasiDate.getFullYear().toString() === tahun && parseInt(currentValue.bulan) <= bulan && currentValue.kode_kab_kota === kode) {
+                        accumulator += parseFloat(currentValue.besaran);
+                    }
+                    return accumulator;
+                }, 0);
+            };
+
+            const yearly = hitungTotalbesaranYearly([currentValue], tahun.toString(), currentValue.kode_kab_kota);
+            const curr_month = hitungTotalbesaranCurrMonth([currentValue], tahun.toString(), parseInt(formatbulan), currentValue.kode_kab_kota);
+            const mtm = hitungTotalbesaranMTM([currentValue], tahun.toString(), parseInt(formatbulan), currentValue.kode_kab_kota);
+
+            if (!accumulator[groupKey]) {
+                accumulator[groupKey] = {
+                    kode: currentValue.kode_kab_kota,
+                    nama_provinsi: nama_provinsi,
+                    nama_kab_kota: nama_kab_kota,
+                    keterangan: currentValue.keterangan,
+                    tahun: currentValue.tahun,
+                    yearly: yearly,
+                    curr_month: curr_month,
+                    mtm: mtm,
+                    nama_produk: produkData?.nama_produk || "",
+                    kode_produk: produkData?.kode_produk || ""
+                };
+            } else {
+                accumulator[groupKey].yearly += yearly;
+                accumulator[groupKey].curr_month += curr_month;
+                accumulator[groupKey].mtm += mtm;
+            }
+
+            return accumulator;
+        }, {});
+
+        const resultArray = Object.values(rekonstruksiData);
+        res.status(200).send(resultArray);
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send("Terjadi kesalahan dalam pemrosesan data.");
+    }
+};
 
 const getsumwtebusjual = async (request, res) => {
     const { kode, tahun } = request;
@@ -1406,6 +1592,8 @@ export default {
     getalldistributors,
     getalldistributorsum,
     getsumwilayah,
+    getsumwilayahf5,
+    getsumwilayahf6,
     getsumwtebusjual,
     get,
     getall,

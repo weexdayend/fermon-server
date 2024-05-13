@@ -186,8 +186,8 @@ model mart_accumulation_products_f5_wilayah {
   kode_kab_kota String?
   kode_produk   String?
   nama_produk   String?
-  bulan         BigInt?
-  tahun         BigInt?
+  bulan         String?
+  tahun         String?
   besaran       Float?
   total         Float?
   keterangan    String?
@@ -202,8 +202,8 @@ model mart_accumulation_products_f6_wilayah {
   kode_kecamatan String?
   kode_produk    String?
   nama_produk    String?
-  bulan          BigInt?
-  tahun          BigInt?
+  bulan          String?
+  tahun          String?
   besaran        Float?
   total          Float?
   keterangan     String?

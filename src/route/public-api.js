@@ -173,6 +173,8 @@ publicRouter.post('/admin/alokasi/distributor', cors(corsOptions), alokasipenjua
 publicRouter.post('/monitoring/alokasi/distributor/sum', cors(corsOptions), alokasipenjualan.getalldistributorsum);
 publicRouter.post('/monitoring/alokasi/wilayah/sum', cors(corsOptions), alokasipenjualan.getsumwilayah);
 publicRouter.post('/monitoring/alokasi/besaran/sum', cors(corsOptions), alokasipenjualan.getsumwtebusjual);
+publicRouter.post('/monitoring/realisasi/f5/wilayah', cors(corsOptions), alokasipenjualan.getsumwilayahf5);
+publicRouter.post('/monitoring/realisasi/f6/wilayah', cors(corsOptions), alokasipenjualan.getsumwilayahf6);
 
 // publicRouter.post('/admin/alokasipenjualan/id', alokasipenjualan.get);
 // publicRouter.get('/admin/alokasipenjualan/all', alokasipenjualan.getall);
