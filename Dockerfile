@@ -5,7 +5,7 @@ RUN apk add --no-cache python3 python3-dev py3-pip build-base
 
 # Install libpq-dev for psycopg2
 RUN apk add --no-cache libpq
-RUN apk add --no-cache psycopg2
+RUN apk add --no-cache python3-psycopg2
 
 # Install psycopg2 and setuptools
 RUN pip install --no-cache-dir setuptools
