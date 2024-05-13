@@ -4,6 +4,19 @@ import csv
 import socketio
 from datetime import datetime
 
+
+# PostgreSQL connection details
+connection_string = "dbname='postgres' user='postgres' host='91.108.110.175' password='SaptaKarya2024'"
+conn = psycopg2.connect(connection_string)
+
+sio = socketio.Client()
+
+try:
+    sio.connect('https://socket.greatjbb.com', transports=['websocket'])
+except Exception as e:
+    print(f"Error: {e}")
+
+
 def import_kios(csv_file_path):
     # Count total rows in CSV file
     with open(csv_file_path, 'r') as csv_file:
@@ -329,13 +342,13 @@ def import_produk(csv_file_path):
             # Increment current row
             current_row += 1
 
-            if has_id_column:
-                # If the CSV has an 'id' column, update existing rows
-                rows_to_insert.append((row[0], row[1], row[2], row[3], row[4], row[5]))  # Append data for batch insertion
-            else:
-                # If the CSV does not have an 'id' column, insert new rows
-                rows_to_insert.append((row[0], row[1], row[2], row[3], row[4]))  # Append data for batch insertion
-            
+            # Construct a dictionary for the row    
+            row_dict = {}
+            for i, field in enumerate(header):
+                row_dict[field] = row[i]
+
+            rows_to_insert.append(row_dict.copy())
+
             # Batch size for insertion
             if len(rows_to_insert) % batch_size == 0 or current_row == total_rows:
                 start_time = datetime.now()  # Record start time for batch insertion
@@ -343,20 +356,18 @@ def import_produk(csv_file_path):
                 if has_id_column:
                     # If the CSV has an 'id' column, perform upsert (update or insert)
                     cursor.executemany("""
-                        INSERT INTO fact_pupuk (id, kode_produk, nama_produk, jual, tebus, tahun) 
-                        VALUES (%s, %s, %s, %s, %s, %s) 
+                        INSERT INTO fact_pupuk (id, kode_produk, nama_produk, tahun) 
+                        VALUES (%(id)s, %(kode_produk)s, %(nama_produk)s, %(tahun)s) 
                         ON CONFLICT (id) DO UPDATE 
                         SET kode_produk = EXCLUDED.kode_produk, 
                             nama_produk = EXCLUDED.nama_produk, 
-                            jual = EXCLUDED.jual, 
-                            tebus = EXCLUDED.tebus,
-                            tahun = EXCLUDED.tahun
+                            jual = EXCLUDED.jual
                         """, rows_to_insert)
                 else:
                     # If the CSV does not have an 'id' column, insert new rows
                     cursor.executemany("""
-                        INSERT INTO fact_pupuk (kode_produk, nama_produk, jual, tebus, tahun) 
-                        VALUES (%s, %s, %s, %s, %s)
+                        INSERT INTO fact_pupuk (kode_produk, nama_produk, tahun) 
+                        VALUES (%(kode_produk)s, %(nama_produk)s, %(tahun)s)
                         """, rows_to_insert)
                 conn.commit()
                 cursor.close()
@@ -811,30 +822,6 @@ def import_harga(csv_file_path):
 
     # Close the database connection
     conn.close()
-
-# PostgreSQL connection details
-connection_string = "dbname='postgres' user='postgres' host='91.108.110.175' password='SaptaKarya2024'"
-conn = psycopg2.connect(connection_string)
-
-sio = socketio.Client()
-
-# Socket event handlers
-@sio.event
-def connect():
-    print('Connected to socket server')
-
-@sio.event
-def connect_error(err):
-    print(f'Failed to connect: {err}')
-
-@sio.event
-def disconnect():
-    print('Disconnected from socket server')
-
-try:
-    sio.connect('https://socket.greatjbb.com', transports=['websocket'])
-except Exception as e:
-    print(f"Error: {e}")
 
 # Retrieve the path to the CSV file and tabIdentifier from command-line arguments
 csv_file_path = sys.argv[1]
