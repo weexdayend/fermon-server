@@ -26,7 +26,9 @@ RUN npx prisma generate
 
 # Install psycopg2 and setuptools inside a virtual environment
 RUN python3 -m venv /usr/app/venv
-RUN /usr/app/venv/bin/pip install --no-cache-dir psycopg2 setuptools "python-socketio[client]"
+
+# Install psycopg2-binary instead of psycopg2
+RUN /usr/app/venv/bin/pip install --no-cache-dir psycopg2-binary setuptools "python-socketio[client]"
 
 # Expose port 4000
 EXPOSE 4000
