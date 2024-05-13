@@ -314,7 +314,7 @@ const uploadService = {
     processUploadedFileBulanF5: async (file, res, next) => {
         try {
             await db.$connect();
-            const pythonScript = spawn('/app/venv/bin/python3', ['src/service/proses_f5.py', file.path]);
+            const pythonScript = spawn('/usr/app/venv/bin/python3', ['src/service/proses_f5.py', file.path]);
 
             pythonScript.stdout.on('data', (data) => {
                 const response = data.toString();
@@ -347,7 +347,7 @@ const uploadService = {
     processUploadedFileBulanF6: async (file, res) => {
         try {
             await db.$connect();
-            const pythonScript = spawn('/app/venv/bin/python3', ['src/service/proses_f6.py', file.path]);
+            const pythonScript = spawn('/usr/app/venv/bin/python3', ['src/service/proses_f6.py', file.path]);
 
             pythonScript.stdout.on('data', (data) => {
                 const response = data.toString();

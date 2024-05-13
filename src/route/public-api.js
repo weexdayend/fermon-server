@@ -249,7 +249,7 @@ publicRouter.post('/migrate', cors(corsOptions), async (req, res) => {
     }
 
     try {
-        spawn('/app/venv/bin/python3', ['src/service/migrate.py', tabIdentifier, grant_access_str]);
+        spawn('/usr/app/venv/bin/python3', ['src/service/migrate.py', tabIdentifier, grant_access_str]);
         res.status(200).json({ message: grant_access_str });
     } catch (error) {
         console.error('Error during migration:', error);
@@ -264,7 +264,7 @@ publicRouter.post('/bulk', cors(corsOptions), upload.single('file'), async (req,
     }
 
     try {
-        const pythonScript = spawn('/app/venv/bin/python3', ['src/python/import-bulk.py', req.file.path, tabIdentifier]);
+        const pythonScript = spawn('/usr/app/venv/bin/python3', ['src/python/import-bulk.py', req.file.path, tabIdentifier]);
 
         pythonScript.stdout.on('data', (data) => {
             const response = data.toString();
