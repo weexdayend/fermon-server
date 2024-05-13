@@ -3,6 +3,9 @@ FROM node:alpine
 # Install Python 3, pip, Python 3 development headers, and build-essential
 RUN apk add --no-cache python3 python3-dev py3-pip build-base
 
+# Install libpq-dev for psycopg2
+RUN apk add --no-cache libpq
+
 # Set up working directory
 WORKDIR /usr/app
 
