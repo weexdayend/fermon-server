@@ -1,47 +1,24 @@
 import sys
-import time
 import psycopg2
 import socketio
 
 # Initialize socket client
-# DATABASE_URL="postgres://postgres:SaptaKarya2024@91.108.110.175:5432/postgres"
 connection_string = "dbname='postgres' user='postgres' host='91.108.110.175' password='SaptaKarya2024'"
 conn = psycopg2.connect(connection_string)
 
 sio = socketio.Client()
-
-# Socket event handlers
-@sio.event
-def connect():
-    print('Connected to socket server')
-
-@sio.event
-def connect_error(err):
-    print(f'Failed to connect: {err}')
-
-@sio.event
-def disconnect():
-    print('Disconnected from socket server')
-
 try:
     sio.connect('https://socket.greatjbb.com', transports=['websocket'])
 except Exception as e:
     print(f"Error: {e}")
 
-def check_database_locks(cursor):
-    # Check for database locks
-    cursor.execute("SELECT pid, usename, locktype, relation::regclass FROM pg_locks WHERE NOT GRANTED")
-    locks = cursor.fetchall()
-    if locks:
-        print("Detected database locks:")
-        for lock in locks:
-            print(lock)
-        # Release locks by terminating the blocking processes
-        for lock in locks:
-            cursor.execute(f"SELECT pg_terminate_backend({lock[0]})")
-            print(f"Terminated process {lock[0]} to release the lock")
-
 def migrate(tab_identifier, grant_migrate):
+    sio.emit('migration progress', {
+        'message': 'Migration is started',
+        'status': 'started',
+        'progress': 0
+    })
+
     try:
         if not grant_migrate:
             # Delete the temporary table if migration is canceled
@@ -52,81 +29,71 @@ def migrate(tab_identifier, grant_migrate):
             sio.emit('migration progress', {
                 'message': 'Migration canceled',
                 'status': 'canceled',
-                'progress': 100  # Indicate that the migration is canceled
+                'progress': 0
             })
             return
 
         # Begin transaction
         with conn.cursor() as cursor:
-            while True:
-                # Check for database locks
-                check_database_locks(cursor)
-                
-                # Fetch total data count from temporary table based on tabIdentifier
-                cursor.execute(f"SELECT COUNT(*) FROM _tmp_dwh_{tab_identifier}_")
-                total_rows = cursor.fetchone()[0]
+            # Fetch column names from data warehouse table
+            cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = 'datawarehouse_{tab_identifier}'")
+            dw_column_names = [row[0] for row in cursor.fetchall()]
 
-                batch_size = 1000
-                total_batches = (total_rows + batch_size - 1) // batch_size
+            # Filter out id and created_at columns
+            filtered_columns = [col for col in dw_column_names if col not in ['id', 'created_at', 'status_processed', 'processed_at']]
 
-                for batch_num in range(total_batches):
-                    # Calculate offset and limit for the current batch
-                    offset = batch_num * batch_size
-                    limit = batch_size
+            # Construct the INSERT INTO statement with filtered column names
+            columns = ", ".join(filtered_columns)
+            insert_query = f"INSERT INTO datawarehouse_{tab_identifier} ({columns}) VALUES ({', '.join(['%s'] * len(filtered_columns))})"
 
-                    # Fetch data from temporary table for the current batch
-                    cursor.execute(f"SELECT * FROM _tmp_dwh_{tab_identifier}_ LIMIT {limit} OFFSET {offset}")
-                    
-                    # Debugging: Print cursor description
-                    print("Cursor Description:", cursor.description)
+            # Get the total number of rows in the temporary table
+            cursor.execute(f"SELECT COUNT(*) FROM _tmp_dwh_{tab_identifier}_")
+            total_rows = cursor.fetchone()[0]
 
-                    tmp_data = cursor.fetchall()
+            # Set the chunk size
+            chunk_size = 1000
 
-                    if tmp_data:
-                        # Get column names from cursor description, excluding 'id' and 'created_at'
-                        columns = ", ".join([column[0] for column in cursor.description if column[0] not in ['id', 'created_at']])
-                        # Get placeholders for the remaining columns
-                        placeholders = ", ".join(["%s"] * len([column[0] for column in cursor.description if column[0] not in ['id', 'created_at']]))
-                        # Construct the INSERT INTO statement
-                        insert_query = f"INSERT INTO datawarehouse_{tab_identifier} ({columns}) VALUES ({placeholders})"
-                        
-                        # Extract values to insert, excluding 'id' and 'created_at'
-                        values_to_insert = [tuple(row[i] for i, column in enumerate(cursor.description) if column[0] not in ['id', 'created_at']]) for row in tmp_data]
+            # Initialize progress
+            progress = 0
+            processed_rows = 0
 
-                        # Insert data into data warehouse fact table
-                        cursor.executemany(insert_query, values_to_insert)
+            # Process data in chunks
+            while processed_rows < total_rows:
+                # Fetch a chunk of data
+                cursor.execute(f"SELECT * FROM _tmp_dwh_{tab_identifier}_ LIMIT {chunk_size} OFFSET {processed_rows}")
+                chunk_data = cursor.fetchall()
 
-                        # Commit transaction
-                        conn.commit()
-
-                        # Calculate progress percentage
-                        progress = int((batch_num + 1) / total_batches * 100)
-                        formatted_progress = "{}".format(progress)
-
-                        # Send progress update to socket server
-                        sio.emit('migration progress', {
-                            'message': f'Migration in progress ({batch_num + 1}/{total_batches})',
-                            'status': 'in progress',
-                            'progress': formatted_progress
-                        })
-
-                # Send migration completion message to socket server
-                sio.emit('migration progress', {
-                    'message': 'Migration completed successfully',
-                    'status': 'completed',
-                    'progress': 100
-                })
-
-                # Delete data from temporary table
-                cursor.execute(f"DELETE FROM _tmp_dwh_{tab_identifier}_")
+                # Insert the chunk into the data warehouse table
+                cursor.executemany(insert_query, chunk_data)
                 conn.commit()
 
-                break  # Exit the while loop after successful migration
+                # Update progress
+                processed_rows += len(chunk_data)
+                progress = (processed_rows / total_rows) * 100
+                progress_str = "{:.2f}".format(progress)
+
+                # Emit progress
+                sio.emit('migration progress', {
+                    'message': 'Migration in progress',
+                    'status': 'in progress',
+                    'progress': progress_str
+                })
+
+            # Delete data from temporary table
+            cursor.execute(f"TRUNCATE TABLE _tmp_dwh_{tab_identifier}_")
+            conn.commit()
+
+            # Emit completion
+            sio.emit('migration progress', {
+                'message': 'Migration finished',
+                'status': 'completed',
+                'progress': 100
+            })
+            print('\nMigration successful')
 
     except Exception as e:
         print(f'Error during migration: {e}')
         conn.rollback()
-        # Send error message to socket server
         sio.emit('migration progress', {
             'message': f'Error during migration: {e}',
             'status': 'error',
