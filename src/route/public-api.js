@@ -292,7 +292,7 @@ publicRouter.post('/migrate', cors(corsOptions), async (req, res) => {
     }
 
     try {
-        spawn('/usr/app/venv/bin/python3', ['src/service/migrate.py', tabIdentifier, grant_access_str]);
+        spawn('/usr/app/venv/bin/python3', ['src/python/migrate.py', tabIdentifier, grant_access_str]);
         res.status(200).json({ message: grant_access_str });
     } catch (error) {
         console.error('Error during migration:', error);

@@ -1,0 +1,122 @@
+import sys
+import psycopg2
+import socketio
+
+# Initialize socket client
+# DATABASE_URL="postgres://postgres:SaptaKarya2024@91.108.110.175:5432/postgres"
+connection_string = "dbname='postgres' user='postgres' host='91.108.110.175' password='SaptaKarya2024'"
+conn = psycopg2.connect(connection_string)
+
+sio = socketio.Client()
+
+# Socket event handlers
+@sio.event
+def connect():
+    print('Connected to socket server')
+
+@sio.event
+def connect_error(err):
+    print(f'Failed to connect: {err}')
+
+@sio.event
+def disconnect():
+    print('Disconnected from socket server')
+
+try:
+    sio.connect('https://socket.greatjbb.com', transports=['websocket'])
+except Exception as e:
+    print(f"Error: {e}")
+
+def migrate(tab_identifier, grant_migrate):
+    try:
+        if not grant_migrate:
+            # Delete the temporary table if migration is canceled
+            with conn.cursor() as cursor:
+                cursor.execute(f"TRUNCATE TABLE _tmp_dwh_{tab_identifier}_")
+            conn.commit()
+            print(f"Temporary table _tmp_dwh_{tab_identifier}_ deleted.")
+            sio.emit('migration progress', {
+                'message': 'Migration canceled',
+                'status': 'canceled',
+                'progress': 100  # Indicate that the migration is canceled
+            })
+            return
+
+        # Begin transaction
+        with conn.cursor() as cursor:
+            # Fetch total data count from temporary table based on tabIdentifier
+            cursor.execute(f"SELECT COUNT(*) FROM _tmp_dwh_{tab_identifier}_")
+            total_rows = cursor.fetchone()[0]
+
+            batch_size = 1000
+            total_batches = (total_rows + batch_size - 1) // batch_size
+
+            for batch_num in range(total_batches):
+                # Calculate offset and limit for the current batch
+                offset = batch_num * batch_size
+                limit = batch_size
+
+                # Fetch data from temporary table for the current batch
+                cursor.execute(f"SELECT * FROM _tmp_dwh_{tab_identifier}_ LIMIT {limit} OFFSET {offset}")
+                tmp_data = cursor.fetchall()
+
+                if tmp_data:
+                    # Construct the INSERT INTO statement with column names
+                    columns = ", ".join([column[0] for column in cursor.description])
+                    placeholders = ", ".join(["%s"] * len(cursor.description))
+                    insert_query = f"INSERT INTO datawarehouse_{tab_identifier} ({columns}) VALUES ({placeholders})"
+
+                    # Insert data into data warehouse fact table
+                    cursor.executemany(insert_query, tmp_data)
+
+                    # Delete data from temporary table for the current batch
+                    cursor.execute(f"DELETE FROM _tmp_dwh_{tab_identifier}_ WHERE id IN (SELECT id FROM _tmp_dwh_{tab_identifier}_ ORDER BY id LIMIT {limit})")
+
+                    # Commit transaction
+                    conn.commit()
+
+                    # Calculate progress percentage
+                    progress = (batch_num + 1) / total_batches * 100
+
+                    # Send progress update to socket server
+                    sio.emit('migration progress', {
+                        'message': f'Migration in progress ({batch_num + 1}/{total_batches})',
+                        'status': 'in progress',
+                        'progress': progress
+                    })
+
+            # Send migration completion message to socket server
+            sio.emit('migration progress', {
+                'message': 'Migration completed successfully',
+                'status': 'completed',
+                'progress': 100
+            })
+
+    except Exception as e:
+        print(f'Error during migration: {e}')
+        conn.rollback()
+        # Send error message to socket server
+        sio.emit('migration progress', {
+            'message': f'Error during migration: {e}',
+            'status': 'error',
+            'progress': 0
+        })
+    finally:
+        conn.close()
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python migrate_script.py <tab_identifier> <grant_migrate>")
+        sys.exit(1)
+
+    tab_identifier = sys.argv[1]
+    grant_migrate = sys.argv[2].lower() == 'true'  # Convert the string to boolean
+
+    if tab_identifier not in ['f5', 'f6']:
+        print('Invalid tabIdentifier')
+        sys.exit(1)
+
+    migrate(tab_identifier, grant_migrate)
+
+    sio.wait()

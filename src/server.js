@@ -52,12 +52,8 @@ io.on('connection', async (socket) => {
         socket.broadcast.emit('bulk completed', data)
     });
 
-    socket.on('migration process', (data) => {
-        socket.broadcast.emit('migration process', data)
-    });
-
-    socket.on('migration finish', (data) => {
-        socket.broadcast.emit('migration finish', data)
+    socket.on('migration progress', (data) => {
+        socket.broadcast.emit('migration progress', data)
     });
 
     socket.on('example data', (data) => {
