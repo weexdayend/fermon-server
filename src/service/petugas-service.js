@@ -180,7 +180,7 @@ const update = async (request, res) => {
                 updateData.foto = foto;
             }
 
-            updatedPetugas = await db.tbl_petugas.update({
+            updatedPetugas = await db.fact_petugas.update({
                 where: {
                     id: id
                 },

@@ -161,9 +161,6 @@ const getall = async (id, res) => {
             image: true,
             role: true,
             status_user: true
-        },
-        where: {
-            status_user: true
         }
     });
 
@@ -177,29 +174,7 @@ const getall = async (id, res) => {
 }
 const update = async (request) => {
 
-    const { username, password, email, hashad, name, image, status_user } = request;
-
-    const user = await db.tbl_user.findUnique({
-        where: {
-            email: username
-        },
-    });
-
-    if (!user || !user.hashed || !checkPassword(password, user.hashed)) {
-        return null;
-    }
-
-    const totalContactInDatabase = await db.tbl_user.count({
-        where: {
-            email: email
-        }
-    });
-
-    if (totalContactInDatabase !== 1) {
-        return res.status(404).json({ error: 'not found' });
-    }
-
-    const passwords = await bcrypt.hash(hashad, 10);
+    const { email, name, image, status_user, role } = request;
 
     return db.tbl_user.update({
         where: {
@@ -209,13 +184,9 @@ const update = async (request) => {
             updated_at: formattedDate,
             email: email,
             name: name,
-            hashed: passwords,
             image: image,
-            status_user: status_user
-        },
-        select: {
-            email: true,
-            name: true,
+            status_user: status_user,
+            role: role
         }
     })
 }

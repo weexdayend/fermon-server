@@ -202,6 +202,49 @@ publicRouter.put('/file', upload.single('file'), filectr.update);
 publicRouter.delete('/file', upload.single('file'), filectr.remove);
 publicRouter.post('/file/data', filectr.get);
 
+publicRouter.get('/master/wilayah', cors(corsOptions), async (req, res) => {
+    try {
+        const result = await db.$transaction(async (tx) => {
+            const base_data = await tx.fact_map_area.findMany({
+                where: {
+                    tahun: '2023'
+                },
+                include: {
+                    Provinsi: true,
+                    Kotakab: true
+                }
+            });
+            return { base_data };
+        })
+
+        const provinsiResult = result.base_data
+            .filter(item => item.kategori === "Provinsi")
+            .map(item => ({
+                kode: item.kode_provinsi,
+                nama: item.Provinsi?.nama_provinsi
+            }));
+
+        const kotaResult = result.base_data
+            .filter(item => item.kategori === "Kota")
+            .map(item => ({
+                kode: item.kode_kab_kota,
+                nama: item.Kotakab?.nama_kab_kota
+            }));
+
+        const kabupatenResult = result.base_data
+            .filter(item => item.kategori === "Kabupaten")
+            .map(item => ({
+                kode: item.kode_kab_kota,
+                nama: item.Kotakab?.nama_kab_kota
+            }));
+
+        const finalResult = [...provinsiResult, ...kotaResult, ...kabupatenResult];
+
+        res.status(200).json(finalResult);
+    } catch (e) {
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+})
 publicRouter.get('/app-relation', cors(corsOptions), async (req, res) => {
     try {
         const result = await db.$transaction(async (tx) => {

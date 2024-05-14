@@ -627,8 +627,8 @@ def import_petugas(csv_file_path):
     total_batches = (total_rows + batch_size - 1) // batch_size
 
     # Initialize variables to track current batch and current row
-    current_batch = 0
     current_row = 0
+    current_batch = 0
     total_duration = 0
 
     # Open the CSV file and read its contents
@@ -641,17 +641,20 @@ def import_petugas(csv_file_path):
         
         # Prepare a list to store rows for batch insertion
         rows_to_insert = []
-        
+        user_rows_to_insert = []
+
+        # Iterate over the CSV rows
         for row in reader:
-            # Increment current row
-            current_row += 1
+            current_row += 1  # Increment current row count
+            
+            if has_id_column:
+                # If the CSV has an 'id' column, update existing rows
+                rows_to_insert.append((row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]))  # Append data for batch insertion
+            else:
+                # If the CSV does not have an 'id' column, insert new rows
+                rows_to_insert.append((row[0], row[1], row[2], row[3], row[4], row[5]))  # Append data for batch insertion
 
-            # Construct a dictionary for the row    
-            row_dict = {}
-            for i, field in enumerate(header):
-                row_dict[field] = row[i]
-
-            rows_to_insert.append(row_dict)
+            user_rows_to_insert.append((row[6], row[1]))
 
             # Batch size for insertion
             if len(rows_to_insert) % batch_size == 0 or current_row == total_rows:
@@ -660,24 +663,28 @@ def import_petugas(csv_file_path):
                 if has_id_column:
                     # If the CSV has an 'id' column, perform upsert (update or insert)
                     cursor.executemany("""
-                        INSERT INTO fact_petugas (id, kode_petugas, nama_petugas, contact, contact_wa, jabatan, departemen, status_kepegawaian, status_petugas) 
-                        VALUES (%(id)s, %(kode_petugas)s, %(nama_petugas)s, %(contact)s, %(contact_wa)s, %(jabatan)s, %(departemen)s, %(status_kepegawaian)s, %(status_petugas)s) 
+                        INSERT INTO fact_petugas (id, kode_petugas, nama_petugas, contact, contact_wa, jabatan, status_kepagawaian, status_petugas) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s) 
                         ON CONFLICT (id) DO UPDATE 
                         SET kode_petugas = EXCLUDED.kode_petugas, 
                             nama_petugas = EXCLUDED.nama_petugas, 
                             contact = EXCLUDED.contact, 
                             contact_wa = EXCLUDED.contact_wa, 
                             jabatan = EXCLUDED.jabatan, 
-                            departemen = EXCLUDED.departemen, 
-                            status_kepegawaian = EXCLUDED.status_kepegawaian, 
-                            status_petugas = EXCLUDED.status_petugas, 
+                            status_petugas = EXCLUDED.status_petugas
                     """, rows_to_insert)
                 else:
-                    # If the CSV does not have an 'id' column, insert new rows
+                    # If the CSV does not have an 'id' column, insert new rows into fact_petugas
                     cursor.executemany("""
-                        INSERT INTO fact_petugas (kode_petugas, nama_petugas, contact, contact_wa, jabatan, departemen, status_kepegawaian) 
-                        VALUES (%(kode_petugas)s, %(nama_petugas)s, %(contact)s, %(contact_wa)s, %(jabatan)s, %(departemen)s, %(status_kepegawaian)s)
+                        INSERT INTO fact_petugas (kode_petugas, nama_petugas, contact, contact_wa, jabatan, status_kepagawaian, wilker) 
+                        VALUES (%s, %s, %s, %s, %s, %s, '[]')
                     """, rows_to_insert)
+
+                    cursor.executemany("""
+                        INSERT INTO tbl_user (email, hashed, name, status_user) 
+                        VALUES (%s, '$2b$10$N7o7ZpwXRa9Ias2s7CfYJ.xdF1Ym8altZ2KC3PfCOVUsDSSCKOygC', %s, 'false')
+                    """, user_rows_to_insert)
+                    
                 conn.commit()
                 cursor.close()
                 end_time = datetime.now()  # Record end time for batch insertion
@@ -710,7 +717,7 @@ def import_petugas(csv_file_path):
                 rows_to_insert = []
 
         # Emit message when process is completed
-        sio.emit('bulk completed', {'message': 'Bulk import process completed'});
+        sio.emit('bulk completed', {'message': 'Bulk import process completed'})
 
     # Close the database connection
     conn.close()
@@ -840,6 +847,8 @@ elif tab_identifier == 'Alokasi':
     import_alokasi(csv_file_path)
 elif tab_identifier == 'Mapping':
     import_mapping(csv_file_path)
+elif tab_identifier == 'Petugas':
+    import_petugas(csv_file_path)
 elif tab_identifier == 'Harga':
     import_harga(csv_file_path)
 else:
