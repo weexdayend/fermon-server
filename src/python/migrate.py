@@ -14,7 +14,7 @@ except Exception as e:
 
 def migrate(tab_identifier, grant_migrate):
     sio.emit('migration progress', {
-        'message': 'Migration is started',
+        'message': 'Migration process',
         'status': 'started',
         'progress': 0
     })
@@ -35,62 +35,39 @@ def migrate(tab_identifier, grant_migrate):
 
         # Begin transaction
         with conn.cursor() as cursor:
+            sio.emit('migration progress', {
+                'message': 'Migration execute',
+                'status': 'processing',
+                'progress': 0
+            })
+
             # Fetch column names from data warehouse table
             cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = 'datawarehouse_{tab_identifier}'")
             dw_column_names = [row[0] for row in cursor.fetchall()]
 
             # Filter out id and created_at columns
             filtered_columns = [col for col in dw_column_names if col not in ['id', 'created_at', 'status_processed', 'processed_at']]
-
+            
             # Construct the INSERT INTO statement with filtered column names
             columns = ", ".join(filtered_columns)
-            insert_query = f"INSERT INTO datawarehouse_{tab_identifier} ({columns}) VALUES ({', '.join(['%s'] * len(filtered_columns))})"
+            insert_query = f"INSERT INTO datawarehouse_{tab_identifier} ({columns}) SELECT {columns} FROM _tmp_dwh_{tab_identifier}_"
 
-            # Get the total number of rows in the temporary table
-            cursor.execute(f"SELECT COUNT(*) FROM _tmp_dwh_{tab_identifier}_")
-            total_rows = cursor.fetchone()[0]
-
-            # Set the chunk size
-            chunk_size = 1000
-
-            # Initialize progress
-            progress = 0
-            processed_rows = 0
-
-            # Process data in chunks
-            while processed_rows < total_rows:
-                # Fetch a chunk of data
-                cursor.execute(f"SELECT * FROM _tmp_dwh_{tab_identifier}_ LIMIT {chunk_size} OFFSET {processed_rows}")
-                chunk_data = cursor.fetchall()
-
-                # Insert the chunk into the data warehouse table
-                cursor.executemany(insert_query, chunk_data)
-                conn.commit()
-
-                # Update progress
-                processed_rows += len(chunk_data)
-                progress = (processed_rows / total_rows) * 100
-                progress_str = "{:.2f}".format(progress)
-
-                # Emit progress
-                sio.emit('migration progress', {
-                    'message': 'Migration in progress',
-                    'status': 'in progress',
-                    'progress': progress_str
-                })
-
+            # Execute the insert query
+            cursor.execute(insert_query)
+            
             # Delete data from temporary table
             cursor.execute(f"TRUNCATE TABLE _tmp_dwh_{tab_identifier}_")
+            
+            # Commit transaction
             conn.commit()
 
-            # Emit completion
             sio.emit('migration progress', {
                 'message': 'Migration finished',
-                'status': 'completed',
+                'status': 'finished',
                 'progress': 100
             })
             print('\nMigration successful')
-
+            
     except Exception as e:
         print(f'Error during migration: {e}')
         conn.rollback()
@@ -101,6 +78,7 @@ def migrate(tab_identifier, grant_migrate):
         })
     finally:
         conn.close()
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
