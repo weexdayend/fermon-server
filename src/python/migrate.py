@@ -63,7 +63,7 @@ def migrate(tab_identifier, grant_migrate):
 
             sio.emit('migration progress', {
                 'message': 'Migration finished',
-                'status': 'finished',
+                'status': 'completed',
                 'progress': 100
             })
             print('\nMigration successful')
