@@ -58,31 +58,38 @@ def migrate(tab_identifier, grant_migrate):
 
                 # Fetch data from temporary table for the current batch
                 cursor.execute(f"SELECT * FROM _tmp_dwh_{tab_identifier}_ LIMIT {limit} OFFSET {offset}")
+                
+                # Debugging: Print cursor description
+                print("Cursor Description:", cursor.description)
+
                 tmp_data = cursor.fetchall()
 
                 if tmp_data:
-                    # Construct the INSERT INTO statement with column names
-                    columns = ", ".join([column[0] for column in cursor.description])
-                    placeholders = ", ".join(["%s"] * len(cursor.description))
+                    # Get column names from cursor description, excluding 'id' and 'created_at'
+                    columns = ", ".join([column[0] for column in cursor.description if column[0] not in ['id', 'created_at']])
+                    # Get placeholders for the remaining columns
+                    placeholders = ", ".join(["%s"] * len([column[0] for column in cursor.description if column[0] not in ['id', 'created_at']]))
+                    # Construct the INSERT INTO statement
                     insert_query = f"INSERT INTO datawarehouse_{tab_identifier} ({columns}) VALUES ({placeholders})"
+                    
+                    # Extract values to insert, excluding 'id' and 'created_at'
+                    values_to_insert = [tuple(row[i] for i, column in enumerate(cursor.description) if column[0] not in ['id', 'created_at']) for row in tmp_data]
 
                     # Insert data into data warehouse fact table
-                    cursor.executemany(insert_query, tmp_data)
-
-                    # Delete data from temporary table for the current batch
-                    cursor.execute(f"DELETE FROM _tmp_dwh_{tab_identifier}_ WHERE id IN (SELECT id FROM _tmp_dwh_{tab_identifier}_ ORDER BY id LIMIT {limit})")
+                    cursor.executemany(insert_query, values_to_insert)
 
                     # Commit transaction
                     conn.commit()
 
                     # Calculate progress percentage
-                    progress = (batch_num + 1) / total_batches * 100
+                    progress = int((batch_num + 1) / total_batches * 100)
+                    formatted_progress = "{}".format(progress)
 
                     # Send progress update to socket server
                     sio.emit('migration progress', {
                         'message': f'Migration in progress ({batch_num + 1}/{total_batches})',
                         'status': 'in progress',
-                        'progress': progress
+                        'progress': formatted_progress
                     })
 
             # Send migration completion message to socket server
@@ -91,6 +98,9 @@ def migrate(tab_identifier, grant_migrate):
                 'status': 'completed',
                 'progress': 100
             })
+
+            cursor.execute(f"DELETE FROM _tmp_dwh_{tab_identifier}_")
+            conn.commit()            
 
     except Exception as e:
         print(f'Error during migration: {e}')
@@ -103,7 +113,6 @@ def migrate(tab_identifier, grant_migrate):
         })
     finally:
         conn.close()
-
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
