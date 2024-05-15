@@ -1600,89 +1600,23 @@ const monitoringalokasi = async (request, res) => {
             keterangan: "Alokasi"
         };
 
-        if (kode !== '' && kode !== null) {
-            whereprofile.kode = kode;
-        }
-        if (kategori !== '' && kategori !== null) {
+        let data;
 
-            if (kategori == "Kota" || kategori == 'Kabupaten') {
-
-                const [mapping_profile, alokasi, harga] = await Promise.all([
-                    // db.fact_distributor.findMany(),
-                    db.fact_map_area.findMany(
-                        {
-                            where: {
-                                kode_kab_kota: kode,
-                                OR: [
-                                    { kategori: 'Kota' },
-                                    { kategori: 'Kabupaten' }
-                                ]
-                            },
-                            include: {
-                                Kotakab: true
-                            }
-                        }
-                    ),
-                    db.tbl_alokasi_penjualan.groupBy(
-                        {
-                            // by: ['kode', 'kode_produk', 'keterangan', 'tahun', 'bulan'],
-                            // _sum: {
-                            //     besaran: true
-                            // },
-                            where: { keterangan: "Alokasi" },
-
-                        }
-                    ),
-                    db.tbl_alokasi_penjualan.findMany(
-                        {
-                            where: {
-                                keterangan: {
-                                    in: ["Tebus", "Jual"]
-                                }
-                            }
-                        }
-                    ),
-
-
-                ]);
-
-                let no = 0;
-                const transformedData = mapping_profile.map((profile) => {
-                    if (profile['Kotakab']) {
-                        return {
-                            no: no++,
-                            id_provinsi: profile.kode_provinsi,
-                            kategori: profile.kategori,
-                            kode: profile['Kotakab'].kode_kab_kota,
-                            nama: profile['Kotakab'].nama_kab_kota,
-                        };
+        if (kategori == "Kota" || kategori == 'Kabupaten') {
+            try {
+                const mapping_profile = await db.fact_map_area.findMany({
+                    where: {
+                        kode_kab_kota: kode,
+                        kategori: 'Kecamatan'
+                    },
+                    include: {
+                        Kecamatan: true
                     }
-                });
-
-                res.status(200).send(alokasi);
-            }
-
-            if (kategori == "Kecamatan") {
-                const [mapping_profile] = await Promise.all([
-                    // db.fact_distributor.findMany(),
-                    db.fact_map_area.findMany(
-                        {
-                            where: {
-                                kode_kab_kota: kode,
-                                kategori: 'Kecamatan'
-                            },
-                            include: {
-                                Kecamatan: true
-                            }
-                        }
-                    ),
-
-                ]);
-
-                const transformedData = mapping_profile.map((profile, index) => {
+                })                
+        
+                const transformedData = mapping_profile.map((profile) => {
                     if (profile['Kecamatan']) {
                         return {
-                            no: index,
                             id_provinsi: profile.kode_provinsi,
                             kategori: profile.kategori,
                             kode: profile['Kecamatan'].kode_kecamatan,
@@ -1691,17 +1625,147 @@ const monitoringalokasi = async (request, res) => {
                     }
                 });
 
-                res.status(200).send(transformedData);
+                const kodeValues = transformedData.map((data) => data.kode);
+                
+                const alokasi = await db.tbl_alokasi_penjualan.findMany({
+                    where: {
+                        kode: {
+                            in: kodeValues
+                        },
+                        tahun: tahun,
+                        bulan: formatbulan,
+                        keterangan: 'Alokasi'
+                    },
+                    select: {
+                        kode_produk: true,
+                        besaran: true,
+                    },             
+                })
+                const sumByKodeProduk = alokasi.reduce((accumulator, currentValue) => {
+                    const { kode_produk, besaran } = currentValue;
+                    // Convert 'besaran' to float before summing
+                    const besaranFloat = parseFloat(besaran);
+                    // Check if 'besaran' is a valid number
+                    if (!isNaN(besaranFloat)) {
+                        accumulator[kode_produk] = (accumulator[kode_produk] || 0) + besaranFloat;
+                    }
+                    return accumulator;
+                }, {});
+                const resultAlokasi = Object.entries(sumByKodeProduk).map(([kode_produk, total]) => ({
+                    kode_produk,
+                    total
+                }));
+                
+                const harga = await db.tbl_alokasi_penjualan.findMany({
+                    where: {
+                        kode: kode,
+                        tahun: tahun,
+                        bulan: formatbulan,
+                        keterangan: {
+                            in: ["Tebus", "Jual"]
+                        }
+                    },
+                    select: {
+                        kode_produk: true,
+                        besaran: true,
+                        keterangan: true
+                    }
+                })
+                const transformedHarga = harga.map(item => ({
+                    kode_produk: item.kode_produk,
+                    besaran: parseFloat(item.besaran),
+                    keterangan: item.keterangan
+                }));
+        
+                data = { alokasi: resultAlokasi, harga: transformedHarga};
+            } catch (error) {
+                data = []
             }
+        }        
 
+        if (kategori == "Kecamatan") {
+            try {
+                const mapping_profile = await db.fact_map_area.findMany({
+                    where: {
+                        kode_kab_kota: kode,
+                        kategori: 'Kecamatan'
+                    },
+                    include: {
+                        Kecamatan: true
+                    }
+                })                
+        
+                const transformedData = mapping_profile.map((profile) => {
+                    if (profile['Kecamatan']) {
+                        return {
+                            id_provinsi: profile.kode_provinsi,
+                            kategori: profile.kategori,
+                            kode: profile['Kecamatan'].kode_kecamatan,
+                            nama: profile['Kecamatan'].nama_kecamatan,
+                        };
+                    }
+                });
+
+                const kodeValues = transformedData.map((data) => data.kode);
+                
+                const alokasi = await db.tbl_alokasi_penjualan.findMany({
+                    where: {
+                        kode: {
+                            in: kodeValues
+                        },
+                        tahun: tahun,
+                        bulan: formatbulan,
+                        keterangan: 'Alokasi'
+                    },
+                    select: {
+                        kode_produk: true,
+                        besaran: true,
+                    },             
+                })
+                const sumByKodeProduk = alokasi.reduce((accumulator, currentValue) => {
+                    const { kode_produk, besaran } = currentValue;
+                    // Convert 'besaran' to float before summing
+                    const besaranFloat = parseFloat(besaran);
+                    // Check if 'besaran' is a valid number
+                    if (!isNaN(besaranFloat)) {
+                        accumulator[kode_produk] = (accumulator[kode_produk] || 0) + besaranFloat;
+                    }
+                    return accumulator;
+                }, {});
+                const resultAlokasi = Object.entries(sumByKodeProduk).map(([kode_produk, total]) => ({
+                    kode_produk,
+                    total
+                }));
+                
+                const harga = await db.tbl_alokasi_penjualan.findMany({
+                    where: {
+                        kode: kode,
+                        tahun: tahun,
+                        bulan: formatbulan,
+                        keterangan: {
+                            in: ["Tebus", "Jual"]
+                        }
+                    },
+                    select: {
+                        kode_produk: true,
+                        besaran: true,
+                        keterangan: true
+                    }
+                })
+                const transformedHarga = harga.map(item => ({
+                    kode_produk: item.kode_produk,
+                    besaran: parseFloat(item.besaran),
+                    keterangan: item.keterangan
+                }));
+        
+                data = transformedHarga;
+            } catch (error) {
+                data = []
+            }
         }
-        if (tahun !== '' && tahun !== null) {
-            whereprofile.tahun = tahun;
-        }
-
-        // data = transformedData
 
 
+        res.status(200).send(data);
     } catch (error) {
         console.error("Error:", error);
         res.status(500).send("Terjadi kesalahan dalam pemrosesan data.");
