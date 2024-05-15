@@ -175,6 +175,7 @@ publicRouter.post('/monitoring/alokasi/wilayah/sum', cors(corsOptions), alokasip
 publicRouter.post('/monitoring/alokasi/besaran/sum', cors(corsOptions), alokasipenjualan.getsumwtebusjual);
 publicRouter.post('/monitoring/realisasi/f5/wilayah', cors(corsOptions), alokasipenjualan.getsumwilayahf5);
 publicRouter.post('/monitoring/realisasi/f6/wilayah', cors(corsOptions), alokasipenjualan.getsumwilayahf6);
+publicRouter.post('/monitoring/alokasi', cors(corsOptions), alokasipenjualan.monitoringalokasi);
 
 // publicRouter.post('/admin/alokasipenjualan/id', alokasipenjualan.get);
 // publicRouter.get('/admin/alokasipenjualan/all', alokasipenjualan.getall);

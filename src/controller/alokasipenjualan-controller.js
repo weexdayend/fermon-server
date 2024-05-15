@@ -90,6 +90,16 @@ const getsumwilayah = async (req, res, next) => {
         next(e);
     }
 }
+const monitoringalokasi = async (req, res, next) => {
+    try {
+
+        const request = req.body;
+        const result = await alokasiService.monitoringalokasi(request, res);
+        return result;
+    } catch (e) {
+        next(e);
+    }
+}
 const getsumwilayahf5 = async (req, res, next) => {
     try {
 
@@ -154,6 +164,7 @@ export default {
     getsumwilayahf5,
     getsumwilayahf6,
     getsumwtebusjual,
+    monitoringalokasi,
     get,
     getall,
     update,

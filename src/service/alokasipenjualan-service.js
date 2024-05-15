@@ -1584,7 +1584,129 @@ const getsumwtebusjual = async (request, res) => {
         res.status(500).send("Terjadi kesalahan dalam pemrosesan data.");
     }
 };
+const monitoringalokasi = async (request, res) => {
 
+    const { kode, kategori, tahun } = request;
+    try {
+        const today = new Date();
+        const formattedDate = today.toISOString();
+
+        const formatbulan = (today.getMonth() + 1).toString();
+        const formattahun = today.getFullYear().toString();
+
+        let whereprofile = {};
+        let includeprofile = {};
+        let wheremapping = {
+            keterangan: "Alokasi"
+        };
+
+        if (kode !== '' && kode !== null) {
+            whereprofile.kode = kode;
+        }
+        if (kategori !== '' && kategori !== null) {
+
+            if (kategori == "Kota" || kategori == 'Kabupaten') {
+
+                const [mapping_profile, alokasi, harga] = await Promise.all([
+                    // db.fact_distributor.findMany(),
+                    db.fact_map_area.findMany(
+                        {
+                            where: {
+                                kode_kab_kota: kode,
+                                OR: [
+                                    { kategori: 'Kota' },
+                                    { kategori: 'Kabupaten' }
+                                ]
+                            },
+                            include: {
+                                Kotakab: true
+                            }
+                        }
+                    ),
+                    db.tbl_alokasi_penjualan.groupBy(
+                        {
+                            // by: ['kode', 'kode_produk', 'keterangan', 'tahun', 'bulan'],
+                            // _sum: {
+                            //     besaran: true
+                            // },
+                            where: { keterangan: "Alokasi" },
+
+                        }
+                    ),
+                    db.tbl_alokasi_penjualan.findMany(
+                        {
+                            where: {
+                                keterangan: {
+                                    in: ["Tebus", "Jual"]
+                                }
+                            }
+                        }
+                    ),
+
+
+                ]);
+
+                let no = 0;
+                const transformedData = mapping_profile.map((profile) => {
+                    if (profile['Kotakab']) {
+                        return {
+                            no: no++,
+                            id_provinsi: profile.kode_provinsi,
+                            kategori: profile.kategori,
+                            kode: profile['Kotakab'].kode_kab_kota,
+                            nama: profile['Kotakab'].nama_kab_kota,
+                        };
+                    }
+                });
+
+                res.status(200).send(alokasi);
+            }
+
+            if (kategori == "Kecamatan") {
+                const [mapping_profile] = await Promise.all([
+                    // db.fact_distributor.findMany(),
+                    db.fact_map_area.findMany(
+                        {
+                            where: {
+                                kode_kab_kota: kode,
+                                kategori: 'Kecamatan'
+                            },
+                            include: {
+                                Kecamatan: true
+                            }
+                        }
+                    ),
+
+                ]);
+
+                const transformedData = mapping_profile.map((profile, index) => {
+                    if (profile['Kecamatan']) {
+                        return {
+                            no: index,
+                            id_provinsi: profile.kode_provinsi,
+                            kategori: profile.kategori,
+                            kode: profile['Kecamatan'].kode_kecamatan,
+                            nama: profile['Kecamatan'].nama_kecamatan,
+                        };
+                    }
+                });
+
+                res.status(200).send(transformedData);
+            }
+
+        }
+        if (tahun !== '' && tahun !== null) {
+            whereprofile.tahun = tahun;
+        }
+
+        // data = transformedData
+
+
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send("Terjadi kesalahan dalam pemrosesan data.");
+    }
+};
 export default {
     create,
     createbulk,
@@ -1592,6 +1714,7 @@ export default {
     getalldistributors,
     getalldistributorsum,
     getsumwilayah,
+    monitoringalokasi,
     getsumwilayahf5,
     getsumwilayahf6,
     getsumwtebusjual,
