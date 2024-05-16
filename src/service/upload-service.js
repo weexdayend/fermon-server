@@ -314,29 +314,8 @@ const uploadService = {
     processUploadedFileBulanF5: async (file, res, next) => {
         try {
             await db.$connect();
-            const pythonScript = spawn('/usr/app/venv/bin/python3', ['src/service/proses_f5.py', file.path]);
-
-            pythonScript.stdout.on('data', (data) => {
-                const response = data.toString();
-                const matches = response.match(/Total batches successfully inserted: (\d+)\nTotal rows: (\d+)/);
-                console.log(`stdout: ${matches}`);
-            });
-
-            pythonScript.stderr.on('data', (data) => {
-                console.error(`stderr: ${data}`);
-            });
-
-            let exitCode;
-
-            pythonScript.on('close', (code) => {
-                exitCode = code;
-                console.log('conn close', code);
-
-                // Pastikan Anda hanya mengirim tanggapan jika belum dikirim sebelumnya
-                if (!res.headersSent) {
-                    res.send(`File uploaded and data imported successfully. Time taken: ${exitCode} seconds.`);
-                }
-            });
+            spawn('/usr/app/venv/bin/python3', ['src/service/proses_f5.py', file.path]);
+            res.status(200).json({ message: 'Upload file berhasil' });
         } catch (error) {
             console.error('Error saat memproses file CSV yang diunggah:', error);
             res.status(500).json({ error: 'Kesalahan server internal' });
@@ -347,30 +326,8 @@ const uploadService = {
     processUploadedFileBulanF6: async (file, res) => {
         try {
             await db.$connect();
-            const pythonScript = spawn('/usr/app/venv/bin/python3', ['src/service/proses_f6.py', file.path]);
-
-            pythonScript.stdout.on('data', (data) => {
-                const response = data.toString();
-                const matches = response.match(/Total batches successfully inserted: (\d+)\nTotal rows: (\d+)/);
-
-                console.log(`stdout: ${matches}`);
-            });
-
-            pythonScript.stderr.on('data', (data) => {
-                console.error(`stderr: ${data}`);
-            });
-
-            let exitCode;
-
-            pythonScript.on('close', (code) => {
-                exitCode = code;
-                console.log('conn close', code);
-
-                // Pastikan Anda hanya mengirim tanggapan jika belum dikirim sebelumnya
-                if (!res.headersSent) {
-                    res.send(`File uploaded and data imported successfully. Time taken: ${exitCode} seconds.`);
-                }
-            });
+            spawn('/usr/app/venv/bin/python3', ['src/service/proses_f6.py', file.path]);
+            res.status(200).json({ message: 'Upload file berhasil' });
         } catch (error) {
             console.error('Error saat memproses file CSV yang diunggah:', error);
             res.status(500).json({ error: 'Kesalahan server internal' });

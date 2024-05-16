@@ -88,13 +88,10 @@ const update = async (request, res) => {
         tahun,
         bulan,
         besaran,
-        kode_distributor,
+        kode,
         keterangan,
         kode_produk,
-        kode_provinsi,
-        kode_kab_kota,
-        kode_kecamatan,
-        status_alokasi_penjualan
+        kategori
     } = request;
 
     try {
@@ -120,13 +117,10 @@ const update = async (request, res) => {
                     tahun: tahun,
                     bulan: bulan,
                     besaran: besaran,
-                    kode_distributor: kode_distributor,
+                    kode: kode,
                     keterangan: keterangan,
                     kode_produk: kode_produk,
-                    kode_provinsi: kode_provinsi,
-                    kode_kab_kota: kode_kab_kota,
-                    kode_kecamatan: kode_kecamatan,
-                    status_alokasi_penjualan: status_alokasi_penjualan,
+                    kategori: kategori
                 }
             });
         });
