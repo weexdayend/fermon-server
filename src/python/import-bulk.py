@@ -95,17 +95,7 @@ def import_kios(csv_file_path):
                 # Calculate estimated remaining time in minutes
                 remaining_batches = total_batches - current_batch
                 estimated_remaining_time = avg_duration_per_batch * remaining_batches / 60  # Convert to minutes
-                
-                objectDatas = {
-                    'total_row': total_rows,
-                    'total_batch': total_batches,
-                    'current_batch': current_batch,
-                    'estimated': f'{estimated_remaining_time:.2f}'
-                }
-
-                # Send message to socket server
-                sio.emit('bulk progress', objectDatas)
-                
+                                
                 # Clear the list for the next batch
                 rows_to_insert = []
 
@@ -194,16 +184,6 @@ def import_distributor(csv_file_path):
                 remaining_batches = total_batches - current_batch
                 estimated_remaining_time = avg_duration_per_batch * remaining_batches / 60  # Convert to minutes
                 
-                objectDatas = {
-                    'total_row': total_rows,
-                    'total_batch': total_batches,
-                    'current_batch': current_batch,
-                    'estimated': f'{estimated_remaining_time:.2f}'
-                }
-
-                # Send message to socket server
-                sio.emit('bulk progress', objectDatas)
-                
                 # Clear the list for the next batch
                 rows_to_insert = []
 
@@ -291,17 +271,7 @@ def import_gudang(csv_file_path):
                 # Calculate estimated remaining time in minutes
                 remaining_batches = total_batches - current_batch
                 estimated_remaining_time = avg_duration_per_batch * remaining_batches / 60  # Convert to minutes
-                
-                objectDatas = {
-                    'total_row': total_rows,
-                    'total_batch': total_batches,
-                    'current_batch': current_batch,
-                    'estimated': f'{estimated_remaining_time:.2f}'
-                }
-
-                # Send message to socket server
-                sio.emit('bulk progress', objectDatas)
-                
+                                
                 # Clear the list for the next batch
                 rows_to_insert = []
 
@@ -386,17 +356,7 @@ def import_produk(csv_file_path):
                 # Calculate estimated remaining time in minutes
                 remaining_batches = total_batches - current_batch
                 estimated_remaining_time = avg_duration_per_batch * remaining_batches / 60  # Convert to minutes
-                
-                objectDatas = {
-                    'total_row': total_rows,
-                    'total_batch': total_batches,
-                    'current_batch': current_batch,
-                    'estimated': f'{estimated_remaining_time:.2f}'
-                }
-
-                # Send message to socket server
-                sio.emit('bulk progress', objectDatas)
-                
+                                
                 # Clear the list for the next batch
                 rows_to_insert = []
 
@@ -495,17 +455,7 @@ def import_alokasi(csv_file_path):
                 # Calculate estimated remaining time in minutes
                 remaining_batches = total_batches - current_batch
                 estimated_remaining_time = avg_duration_per_batch * remaining_batches / 60  # Convert to minutes
-                
-                objectDatas = {
-                    'total_row': total_rows,
-                    'total_batch': total_batches,
-                    'current_batch': current_batch,
-                    'estimated': f'{estimated_remaining_time:.2f}'
-                }
-
-                # Send message to socket server
-                sio.emit('bulk progress', objectDatas)
-                
+                                
                 # Clear the list for the next batch
                 rows_to_insert = []
 
@@ -595,17 +545,7 @@ def import_mapping(csv_file_path):
                 # Calculate estimated remaining time in minutes
                 remaining_batches = total_batches - current_batch
                 estimated_remaining_time = avg_duration_per_batch * remaining_batches / 60  # Convert to minutes
-                
-                objectDatas = {
-                    'total_row': total_rows,
-                    'total_batch': total_batches,
-                    'current_batch': current_batch,
-                    'estimated': f'{estimated_remaining_time:.2f}'
-                }
-
-                # Send message to socket server
-                sio.emit('bulk progress', objectDatas)
-                
+                                
                 # Clear the list for the next batch
                 rows_to_insert = []
 
@@ -702,16 +642,6 @@ def import_petugas(csv_file_path):
                 # Calculate estimated remaining time in minutes
                 remaining_batches = total_batches - current_batch
                 estimated_remaining_time = avg_duration_per_batch * remaining_batches / 60  # Convert to minutes
-                
-                objectDatas = {
-                    'total_row': total_rows,
-                    'total_batch': total_batches,
-                    'current_batch': current_batch,
-                    'estimated': f'{estimated_remaining_time:.2f}'
-                }
-
-                # Send message to socket server
-                sio.emit('bulk progress', objectDatas)
                 
                 # Clear the list for the next batch
                 rows_to_insert = []
@@ -810,16 +740,6 @@ def import_harga(csv_file_path):
                 # Calculate estimated remaining time in minutes
                 remaining_batches = total_batches - current_batch
                 estimated_remaining_time = avg_duration_per_batch * remaining_batches / 60  # Convert to minutes
-                
-                objectDatas = {
-                    'total_row': total_rows,
-                    'total_batch': total_batches,
-                    'current_batch': current_batch,
-                    'estimated': f'{estimated_remaining_time:.2f}'
-                }
-
-                # Send message to socket server
-                sio.emit('bulk progress', objectDatas)
                 
                 # Clear the list for the next batch
                 rows_to_insert = []
