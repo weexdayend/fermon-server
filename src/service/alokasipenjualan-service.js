@@ -512,20 +512,8 @@ const getalldistributors = async (request, res) => {
                 kode_produk: itemlokasi.kode_produk,
                 produk: produkData ? produkData.nama_produk : null
             };
-            
-            const compareByNamaKategori = (a, b) => {
-                if (a.nama_kategori < b.nama_kategori) {
-                    return -1;
-                }
-                if (a.nama_kategori > b.nama_kategori) {
-                    return 1;
-                }
-                return 0;
-            };
 
-            const sortedData = newData.sort(compareByNamaKategori);
-
-            return sortedData;
+            return newData;
         });
 
 

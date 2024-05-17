@@ -337,19 +337,7 @@ const get = async (request, res) => {
                 produk: produkData ? produkData.nama_produk : null
             };
 
-            const compareByNamaKategori = (a, b) => {
-                if (a.nama_kategori < b.nama_kategori) {
-                    return -1;
-                }
-                if (a.nama_kategori > b.nama_kategori) {
-                    return 1;
-                }
-                return 0;
-            };
-
-            const sortedData = newData.sort(compareByNamaKategori);
-
-            return sortedData;
+            return newData;
         });
 
         res.status(200).send(rekonstruksiData);

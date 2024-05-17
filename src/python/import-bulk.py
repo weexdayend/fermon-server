@@ -70,7 +70,7 @@ def import_kios(csv_file_path):
                             alamat = EXCLUDED.alamat, 
                             long = EXCLUDED.long, 
                             lat = EXCLUDED.lat, 
-                            tahun = EXCLUDED.tahun
+                            tahun = EXCLUDED.tahun;
                         """, rows_to_insert)
                 else:
                     # If the CSV does not have an 'id' column, insert new rows
@@ -158,7 +158,7 @@ def import_distributor(csv_file_path):
                             alamat = EXCLUDED.alamat, 
                             long = EXCLUDED.long, 
                             lat = EXCLUDED.lat, 
-                            tahun = EXCLUDED.tahun
+                            tahun = EXCLUDED.tahun;
                         """, rows_to_insert)
                 else:
                     # If the CSV does not have an 'id' column, insert new rows
@@ -246,7 +246,7 @@ def import_gudang(csv_file_path):
                             alamat = EXCLUDED.alamat, 
                             long = EXCLUDED.long, 
                             lat = EXCLUDED.lat, 
-                            tahun = EXCLUDED.tahun
+                            tahun = EXCLUDED.tahun;
                         """, rows_to_insert)
                 else:
                     # If the CSV does not have an 'id' column, insert new rows
@@ -331,7 +331,7 @@ def import_produk(csv_file_path):
                         ON CONFLICT (id) DO UPDATE 
                         SET kode_produk = EXCLUDED.kode_produk, 
                             nama_produk = EXCLUDED.nama_produk, 
-                            jual = EXCLUDED.jual
+                            jual = EXCLUDED.jual;
                         """, rows_to_insert)
                 else:
                     # If the CSV does not have an 'id' column, insert new rows
@@ -423,14 +423,14 @@ def import_alokasi(csv_file_path):
                     # If the CSV has an 'id' column, perform upsert (update or insert)
                     cursor.executemany("""
                         INSERT INTO tbl_alokasi_penjualan (id, kode, besaran, bulan, tahun, kode_produk, keterangan, kategori) 
-                        VALUES (%(id)s, %(kode)s, %(besaran)s, %(bulan)s, %(tahun)s, %(kode_produk)s, %(source)s, %(source)s)
+                        VALUES (%(id)s, %(kode)s, %(besaran)s, %(bulan)s, %(tahun)s, %(kode_produk)s, %(source)s, %(kategori)s)
                         ON CONFLICT (id) DO UPDATE 
                         SET kode = EXCLUDED.kode, 
                             besaran = EXCLUDED.besaran, 
                             bulan = EXCLUDED.bulan, 
                             tahun = EXCLUDED.tahun,
                             kode_produk = EXCLUDED.kode_produk,
-                            kategori = EXCLUDED.kategori,
+                            kategori = EXCLUDED.kategori;
                         """, rows_to_insert)
                 else:
                     # If the CSV does not have an 'id' column, insert new rows
@@ -520,7 +520,7 @@ def import_mapping(csv_file_path):
                             kode_distributor = EXCLUDED.kode_distributor,
                             kode_pengecer = EXCLUDED.kode_pengecer,
                             kategori = EXCLUDED.kategori,
-                            tahun = EXCLUDED.tahun,
+                            tahun = EXCLUDED.tahun;
                         """, rows_to_insert)
                 else:
                     # If the CSV does not have an 'id' column, insert new rows
@@ -715,7 +715,7 @@ def import_harga(csv_file_path):
                             besaran = EXCLUDED.besaran, 
                             bulan = EXCLUDED.bulan, 
                             tahun = EXCLUDED.tahun,
-                            kode_produk = EXCLUDED.kode_produk,
+                            kode_produk = EXCLUDED.kode_produk;
                         """, rows_to_insert)
                 else:
                     # If the CSV does not have an 'id' column, insert new rows
