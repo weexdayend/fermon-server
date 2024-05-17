@@ -308,7 +308,7 @@ publicRouter.post('/bulk', cors(corsOptions), upload.single('file'), async (req,
     }
 
     try {
-        const pythonScript = spawn('/root/venv/bin/python3', ['src/python/import-bulk.py', req.file.path, tabIdentifier]);
+        const pythonScript = spawn('/app/usr/venv/bin/python3', ['src/python/import-bulk.py', req.file.path, tabIdentifier]);
 
         pythonScript.stdout.on('data', (data) => {
             const response = data.toString();
