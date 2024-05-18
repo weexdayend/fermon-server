@@ -402,6 +402,8 @@ def import_alokasi(csv_file_path):
             for i, field in enumerate(header):
                 row_dict[field] = row[i]
 
+            row_dict['besaran'] = float(row_dict['besaran']) / 1000
+
             # Check if bulan is 0
             bulan = int(row_dict.get('bulan', '0'))
             if bulan == 0:
