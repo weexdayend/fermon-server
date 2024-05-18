@@ -1580,23 +1580,10 @@ const getsumwtebusjual = async (request, res) => {
     }
 };
 const monitoringalokasi = async (request, res) => {
-
     const { kode, kategori, tahun } = request;
+
     try {
-        const today = new Date();
-        const formattedDate = today.toISOString();
-
-        const formatbulan = (today.getMonth() + 1).toString();
-        const formattahun = today.getFullYear().toString();
-
-        let whereprofile = {};
-        let includeprofile = {};
-        let wheremapping = {
-            keterangan: "Alokasi"
-        };
-
         let data;
-
         if (kategori == "Kota" || kategori == 'Kabupaten') {
             try {
                 const mapping_profile = await db.fact_map_area.findMany({
@@ -1628,27 +1615,47 @@ const monitoringalokasi = async (request, res) => {
                             in: kodeValues
                         },
                         tahun: tahun,
-                        bulan: formatbulan,
                         keterangan: 'Alokasi'
                     },
                     select: {
                         kode_produk: true,
                         besaran: true,
+                        bulan: true,
+                        tahun: true,
                     },             
                 })
+
                 const sumByKodeProduk = alokasi.reduce((accumulator, currentValue) => {
-                    const { kode_produk, besaran } = currentValue;
-                    // Convert 'besaran' to float before summing
+                    const { kode_produk, besaran, bulan } = currentValue;
                     const besaranFloat = parseFloat(besaran);
-                    // Check if 'besaran' is a valid number
+                    const bulanInt = Number(bulan); // Convert bulan to number for comparison
+                
                     if (!isNaN(besaranFloat)) {
-                        accumulator[kode_produk] = (accumulator[kode_produk] || 0) + besaranFloat;
+                        if (!accumulator[kode_produk]) {
+                            accumulator[kode_produk] = { yearly: 0, currmonth: 0, mtm: 0 };
+                        }
+                
+                        accumulator[kode_produk].yearly += besaranFloat;
+                
+                        // Check if the current row's month matches the current month
+                        if (bulanInt === formatbulan) {
+                            accumulator[kode_produk].currmonth += besaranFloat;
+                        }
+                
+                        // Sum besaranFloat from January to the current month
+                        if (bulanInt >= 1 && bulanInt <= formatbulan) {
+                            accumulator[kode_produk].mtm += besaranFloat;
+                        }
                     }
+                
                     return accumulator;
-                }, {});
-                const resultAlokasi = Object.entries(sumByKodeProduk).map(([kode_produk, total]) => ({
+                }, {});                          
+            
+                const resultAlokasi = Object.entries(sumByKodeProduk).map(([kode_produk, totals]) => ({
                     kode_produk,
-                    total
+                    yearly: parseFloat(totals.yearly.toFixed(3)),
+                    currmonth: parseFloat(totals.currmonth.toFixed(3)),
+                    mtm: parseFloat(totals.mtm.toFixed(3)),
                 }));
                 
                 const harga = await db.tbl_alokasi_penjualan.findMany({
@@ -1674,7 +1681,7 @@ const monitoringalokasi = async (request, res) => {
         
                 data = { alokasi: resultAlokasi, harga: transformedHarga};
             } catch (error) {
-                data = []
+                data = { alokasi: [], harga: []};
             }
         }        
 

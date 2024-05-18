@@ -234,28 +234,28 @@ const get = async (request, res) => {
         kode
     } = request;
     try {
+        const petugas = await db.fact_petugas.findMany({});
 
-        let filter = {};
-        // if (kode !== '' && kode !== null) {
-        //     filter.kode_petugas = kode;
-        // } 
-        const petugas = await db.fact_petugas.findMany({
-            where: filter
-        });
-
-        if (!petugas) {
-            res.status(200).send("Petugas not found");
-        }
-
-        if (kode !== '' && kode !== null) {
-            let searchdata = petugas.filter(p => {
-                return p.wilker.some(w => w.kode === kode);
+        const filteredAndReformattedPetugas = petugas
+            .filter(petugas => {
+            // Adjust this condition based on your JSON structure and filtering logic
+            // For example, if `wilker` is an array of objects
+                return petugas.wilker.some(w => w.kode === kode);
+            })
+            .map(petugas => {
+                return {
+                    // Adjust the fields according to your requirements
+                    id: petugas.id,
+                    nama_petugas: petugas.nama_petugas,
+                    kode: petugas.wilker.find(w => w.kode === kode)?.kode, // or any specific transformation you need
+                    contact: petugas.contact,
+                    contact_wa: petugas.contact_wa,
+                    jabatan: petugas.jabatan,
+                    wilker: petugas.wilker
+                };
             });
-            res.status(200).send(searchdata);
-        } else {
-            res.status(200).send(petugas);
-        }
 
+        res.status(200).send(filteredAndReformattedPetugas);
     } catch (error) {
         res.status(500).send(`${error}`);
     }

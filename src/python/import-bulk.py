@@ -402,13 +402,16 @@ def import_alokasi(csv_file_path):
             for i, field in enumerate(header):
                 row_dict[field] = row[i]
 
-            # Check for 'besaran' key and convert if present
-            if 'besaran' in row_dict:
-                kilograms = float(row_dict['besaran'])
-                metric_tons = kilograms / 1000
-                row_dict['besaran'] = "{:,.3f}".format(metric_tons)  # Convert and format to 3 decimal places
-            else:
-                row_dict['besaran'] = "0.000"  # Default value or handle appropriately
+            # # Check for 'besaran' key and convert if present
+            # if 'besaran' in row_dict:
+            #     try:
+            #         kilograms = float(row_dict['besaran'].replace(',', ''))
+            #         metric_tons = kilograms / 1000
+            #         row_dict['besaran'] = "{:,.3f}".format(metric_tons)  # Convert and format to 3 decimal places
+            #     except ValueError as e:
+            #         row_dict['besaran'] = "0.000"  # Default value or handle appropriately
+            # else:
+            #     row_dict['besaran'] = "0.000"  # Default value or handle appropriately
 
             # Check if bulan is 0
             bulan = int(row_dict.get('bulan', '0'))
