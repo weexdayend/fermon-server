@@ -126,7 +126,7 @@ const getall = async (id, res) => {
 } */
 const update = async (request, res) => {
     const {
-        id,
+        id_user,
         kode_petugas,
         nama_petugas,
         contact,
@@ -147,35 +147,35 @@ const update = async (request, res) => {
     try {
         let petugas;
         let user;
+        let response = {};
         const today = new Date();
         const formattedDate = today.toISOString();
         await db.$transaction(async (db) => {
 
-            const existingPetugas = await db.fact_petugas.findUnique({
-                where: {
-                    id: id
-                }
-            });
-
-            if (!existingPetugas) {
-                throw new Error('Petugas not found');
-            }
-
-            // ambil data petugas di database table fact_petugas
-            let kode_petugas_db = existingPetugas.kode_petugas;
-
             //ambil data user berdasarkan kode_petugas di tbl_user
             const existingUser = await db.tbl_user.findUnique({
                 where: {
-                    kode_petugas: kode_petugas_db
+                    id: id_user
                 }
             });
+
+            let kode_petugas_db = existingUser.kode_petugas;
 
             if (!existingUser) {
                 throw new Error('User not found');
             }
 
-            let id_user = existingUser.id;
+            const existingPetugas = await db.fact_petugas.findUnique({
+                where: {
+                    kode_petugas: kode_petugas_db
+                }
+            });
+
+            let id_petugas_db = existingPetugas.id;
+
+            if (!existingPetugas) {
+                throw new Error('Petugas not found');
+            }
 
             let updateData = {
                 updated_at: formattedDate
@@ -236,14 +236,6 @@ const update = async (request, res) => {
                 throw new Error('Setidaknya satu field harus memiliki nilai untuk melakukan update.');
             }
 
-            // Lakukan update data petugas
-            petugas = await db.fact_petugas.update({
-                where: {
-                    id: id
-                },
-                data: updateData
-            });
-
             // Lakukan update data user
             user = await db.tbl_user.update({
                 where: {
@@ -251,9 +243,38 @@ const update = async (request, res) => {
                 },
                 data: updateDataUser
             });
+
+            // Lakukan update data petugas
+            petugas = await db.fact_petugas.update({
+                where: {
+                    id: id_petugas_db
+                },
+                data: updateData
+            });
+
+            response = {
+                id_user: user.id,
+                kode_petugas: petugas.kode_petugas,
+                nama_petugas: petugas.nama_petugas,
+                contact: petugas.contact || "",
+                contact_wa: petugas.contact_wa || "",
+                jabatan: petugas.jabatan || "",
+                status_petugas: petugas.status_petugas,
+                departemen: petugas.departemen || "",
+                status_kepagawaian: petugas.status_kepagawaian || "",
+                email: user.email || "",
+                password: "", // Password sebaiknya tidak dikembalikan dalam response
+                role_user: user.role || "",
+                name_user: user.name || "",
+                wilker: petugas.wilker || [], // Asumsi bahwa wilker adalah array, silakan sesuaikan jika strukturnya berbeda
+                status_user: user.status_user,
+                foto: petugas.foto || ""
+            };
+
+
         });
 
-        res.status(200).send({ petugas, user });
+        res.status(200).send(response);
     } catch (error) {
         res.status(500).send(`${error}`);
     }

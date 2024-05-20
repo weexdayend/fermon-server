@@ -131,7 +131,7 @@ async function checkPassword(password, hashedPassword, res) {
 } */
 
 
-const get = async (request, res) => {
+/* const get = async (request, res) => {
 
     try {
         let result;
@@ -147,13 +147,75 @@ const get = async (request, res) => {
             if (!result) {
                 res.status(200).send(`user email ${request.email} not found`);
             }
+
+            petugas = await db.fact_petugas.findUnique({
+                where: {
+                    kode_petugas: result.kode_petugas
+                }
+            });
+
+
         });
 
         res.status(200).send(result);
     } catch (error) {
         res.status(500).send(error.message);
     }
+} */
+const get = async (request, res) => {
+    try {
+        let result;
+        let petugas;
+        let response = {};
+
+        await db.$transaction(async (db) => {
+
+            result = await db.tbl_user.findUnique({
+                where: {
+                    email: request.email
+                }
+            });
+
+            if (!result) {
+                return res.status(200).send(`User with email ${request.email} not found`);
+            }
+
+            petugas = await db.fact_petugas.findUnique({
+                where: {
+                    kode_petugas: result.kode_petugas
+                }
+            });
+
+            if (!petugas) {
+                return res.status(200).send(`Petugas with kode_petugas ${result.kode_petugas} not found`);
+            }
+
+            // Rekonstruksi data menjadi objek yang diinginkan
+            response = {
+                id_user: result.id,
+                kode_petugas: petugas.kode_petugas,
+                nama_petugas: petugas.nama_petugas,
+                contact: petugas.contact || "",
+                contact_wa: petugas.contact_wa || "",
+                jabatan: petugas.jabatan || "",
+                status_petugas: petugas.status_petugas || true,
+                departemen: petugas.departemen || "",
+                status_kepagawaian: petugas.status_kepagawaian || "",
+                email: result.email || "",
+                role_user: result.role || "",
+                name_user: result.name || "",
+                wilker: petugas.wilker || [], // Asumsi bahwa wilker adalah array, silakan sesuaikan jika strukturnya berbeda
+                status_user: result.status_user || true,
+                foto: petugas.foto || ""
+            };
+        });
+
+        res.status(200).send(response);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
 }
+
 const getall = async (id, res) => {
     const user = await db.tbl_user.findMany({
         select: {

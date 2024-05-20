@@ -294,7 +294,7 @@ model fact_petugas {
   created_at         DateTime? @db.Timestamp(6)
   updated_at         DateTime? @db.Timestamp(6)
   deleted_at         DateTime? @db.Timestamp(6)
-  kode_petugas       String?
+  kode_petugas       String?   @unique
   nama_petugas       String?
   contact            String?
   contact_wa         String?
@@ -305,6 +305,7 @@ model fact_petugas {
   status_kepagawaian String?
   foto               String?
 
+  @@unique([id, kode_petugas])
   @@index([id, kode_petugas, contact, contact_wa], map: "petugas_id_idx")
 }
 
