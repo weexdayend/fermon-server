@@ -131,7 +131,7 @@ const createbulk = async (request, res) => {
 
 }
  */
-const update = async (request, res) => {
+/* const update = async (request, res) => {
 
     const {
         id,
@@ -192,7 +192,91 @@ const update = async (request, res) => {
     } catch (error) {
         res.status(500).send(`${error}`);
     }
+} */
+const update = async (request, res) => {
+    const {
+        id,
+        kode_petugas,
+        foto,
+        nama_petugas,
+        contact,
+        contact_wa,
+        jabatan,
+        wilker,
+        status_kepagawaian,
+        status_petugas
+    } = request;
+
+    try {
+        let updatedPetugas;
+
+        await db.$transaction(async (db) => {
+            // Cari data petugas berdasarkan ID
+            const existingPetugas = await db.fact_petugas.findUnique({
+                where: {
+                    id: id
+                }
+            });
+
+            // Jika petugas tidak ditemukan, lempar error
+            if (!existingPetugas) {
+                throw new Error('Petugas not found');
+            }
+
+            // Buat objek data kosong
+            let updateData = {
+                updated_at: formattedDate
+            };
+
+            // Tambahkan field-field yang memiliki nilai ke dalam objek data
+            if (kode_petugas) {
+                updateData.kode_petugas = kode_petugas;
+            }
+            if (nama_petugas) {
+                updateData.nama_petugas = nama_petugas;
+            }
+            if (contact) {
+                updateData.contact = contact;
+            }
+            if (contact_wa) {
+                updateData.contact_wa = contact_wa;
+            }
+            if (jabatan) {
+                updateData.jabatan = jabatan;
+            }
+            if (wilker) {
+                updateData.wilker = wilker;
+            }
+            if (status_kepagawaian) {
+                updateData.status_kepagawaian = status_kepagawaian;
+            }
+            if (status_petugas) {
+                updateData.status_petugas = status_petugas;
+            }
+            if (foto) {
+                updateData.foto = foto;
+            }
+
+            // Pastikan ada setidaknya satu field yang akan diupdate
+            if (Object.keys(updateData).length <= 1) {
+                throw new Error('Setidaknya satu field harus memiliki nilai untuk melakukan update.');
+            }
+
+            // Lakukan update data petugas
+            updatedPetugas = await db.fact_petugas.update({
+                where: {
+                    id: id
+                },
+                data: updateData
+            });
+        });
+
+        res.status(200).send(updatedPetugas);
+    } catch (error) {
+        res.status(500).send(`${error}`);
+    }
 }
+
 
 
 const remove = async (request, res) => {
@@ -238,8 +322,8 @@ const get = async (request, res) => {
 
         const filteredAndReformattedPetugas = petugas
             .filter(petugas => {
-            // Adjust this condition based on your JSON structure and filtering logic
-            // For example, if `wilker` is an array of objects
+                // Adjust this condition based on your JSON structure and filtering logic
+                // For example, if `wilker` is an array of objects
                 return petugas.wilker.some(w => w.kode === kode);
             })
             .map(petugas => {

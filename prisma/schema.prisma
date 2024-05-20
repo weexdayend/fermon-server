@@ -335,9 +335,10 @@ model tbl_user {
   role         String?
   name         String?
   status_user  Boolean?
+  kode_petugas String?        @unique
   tbl_produsen tbl_produsen[]
 
-  @@unique([id, email])
+  @@unique([id, email, kode_petugas])
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

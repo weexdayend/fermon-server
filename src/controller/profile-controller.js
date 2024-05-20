@@ -1,8 +1,8 @@
 import profileService from "../service/profile-service.js";
 let responseSent = false;
- 
+
 const create = async (req, res, next) => {
-    try { 
+    try {
         const request = req.body;
         const result = await profileService.create(request);
         res.status(200).json({
@@ -27,7 +27,7 @@ const get = async (req, res, next) => {
 }
 
 const getall = async (req, res, next) => {
-    try { 
+    try {
         const result = await profileService.getall();
         res.status(200).json({
             data: result
@@ -44,14 +44,12 @@ const update = async (req, res, next) => {
         // const request = req.body;
         // request.id = contactId;
         const request = req.body;
-        const result = await profileService.update(request);
-        res.status(200).json({
-            data: result
-        })
+        const result = await profileService.update(request, res);
+        return result;
     } catch (e) {
         next(e);
     }
-} 
+}
 
 const remove = async (req, res, next) => {
     try {
@@ -66,11 +64,11 @@ const remove = async (req, res, next) => {
         next(e);
     }
 }
- 
+
 
 const search = async (req, res, next) => {
     try {
-       
+
         const request = req.body;
         const result = await profileService.search(request);
         res.status(200).json({
@@ -82,12 +80,12 @@ const search = async (req, res, next) => {
     }
 }
 
- 
-export default { 
-    create, 
-    get, 
-    getall, 
-    update, 
-    remove, 
-    search,  
+
+export default {
+    create,
+    get,
+    getall,
+    update,
+    remove,
+    search,
 }

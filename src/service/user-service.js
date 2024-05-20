@@ -45,6 +45,7 @@ const create = async (request, res) => {
                 image: request.image,
                 role: request.role,
                 status_user: request.status_user,
+                id_petugas: request.id_petugas,
             },
             select: {
                 email: true,
@@ -173,23 +174,46 @@ const getall = async (id, res) => {
     return user;
 }
 const update = async (request) => {
+    const { email, name, image, status_user, role, kode_petugas } = request;
 
-    const { email, name, image, status_user, role } = request;
+    // Buat objek data kosong
+    let updateData = {
+        updated_at: formattedDate
+    };
+
+    // Tambahkan field-field yang memiliki nilai ke dalam objek data
+    if (email) {
+        updateData.email = email;
+    }
+    if (name) {
+        updateData.name = name;
+    }
+    if (image) {
+        updateData.image = image;
+    }
+    if (status_user) {
+        updateData.status_user = status_user;
+    }
+    if (role) {
+        updateData.role = role;
+    }
+    if (kode_petugas) {
+        updateData.kode_petugas = kode_petugas;
+    }
+
+    // Pastikan ada setidaknya satu field yang akan diupdate
+    if (Object.keys(updateData).length <= 1) {
+        throw new Error('Setidaknya satu field harus memiliki nilai untuk melakukan update.');
+    }
 
     return db.tbl_user.update({
         where: {
             email: email,
         },
-        data: {
-            updated_at: formattedDate,
-            email: email,
-            name: name,
-            image: image,
-            status_user: status_user,
-            role: role
-        }
-    })
+        data: updateData
+    });
 }
+
 
 const remove = async (id) => {
     // contactId = validate(getContactValidation, contactId);

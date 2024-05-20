@@ -19,7 +19,7 @@ web.use(cors(corsOptions))
 web.use(bodyParser.json({ limit: '100mb' }));
 web.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 
-web.listen(4000, () => {
+web.listen(6000, () => {
     logger.info("Starting Fermon Server!");
 });
 
@@ -65,6 +65,6 @@ io.on('connection', async (socket) => {
     });
 });
 
-io.listen(8002, () => {
+io.listen(9002, () => {
     logger.info("Socket.io Server listening on port 5000!");
 });
