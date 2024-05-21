@@ -155,6 +155,7 @@ publicRouter.post('/register', cors(corsOptions), user.create);
 publicRouter.post('/user/log', cors(corsOptions), user.createlog);
 publicRouter.put('/user', cors(corsOptions), user.update);
 publicRouter.post('/user', cors(corsOptions), user.get);
+publicRouter.post('/user/password', cors(corsOptions), user.gantipassword);
 publicRouter.get('/user/all', cors(corsOptions), user.getall);
 //root api profile
 publicRouter.post('/profile', cors(corsOptions), profile.create);
@@ -431,7 +432,6 @@ publicRouter.get('/get-file/:fileName', cors(corsOptions), (req, res) => {
         res.status(500).json({ message: 'Internal server error.' });
     }
 });
-
 publicRouter.get('/file/:directoryName/:fileName', cors(corsOptions), (req, res) => {
     const directoryPath = path.join(__dirname, 'uploads');
     const { directoryName, fileName } = req.params;
@@ -451,8 +451,7 @@ publicRouter.get('/file/:directoryName/:fileName', cors(corsOptions), (req, res)
 
     if (tabIdentifier !== 'f5' && tabIdentifier !== 'f6') {
         return res.status(400).json({ error: 'Invalid tabIdentifier' });
-    }
-
+    } 
     try {
 
         // Begin a transaction

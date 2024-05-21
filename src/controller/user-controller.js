@@ -10,6 +10,15 @@ const create = async (req, res, next) => {
         next(e);
     }
 }
+const gantipassword = async (req, res, next) => {
+    try {
+        const request = req.body;
+        const result = await userService.gantipassword(request, res);
+        return result;
+    } catch (e) {
+        next(e);
+    }
+}
 const createlog = async (req, res, next) => {
     try {
         const request = req.body;
@@ -93,6 +102,7 @@ const search = async (req, res, next) => {
 export default {
     login_user,
     create,
+    gantipassword,
     createlog,
     get,
     getall,

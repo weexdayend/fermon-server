@@ -58,6 +58,85 @@ const create = async (request, res) => {
     });
 }
 
+/* const gantipassword = async (request, res) => {
+    const { id, oldpassword, newpassword } = request;
+
+    if (!oldpassword && !newpassword) {
+        throw new Error("Password is required");
+    }
+ 
+    return db.$transaction(async (db) => {
+
+        const getuser = await db.tbl_user.findUnique({
+            where: {
+                id: id
+            }
+        });
+
+        const hashed = getuser.hashed;
+
+        const password = await bcrypt.hash(newpassword, 10);
+
+        if (!getuser || !hashed || !checkPassword(oldpassword, hashed, res)) {
+            res.status(200).send({ message: "Error" });
+        }
+
+
+        await db.tbl_user.update({
+            where: {
+                id: id
+            },
+            data: {
+                hashed: password
+            }
+        });
+
+        res.status(200).send({ message: "Success" });
+    });
+} */
+const gantipassword = async (req, res) => {
+
+    const { id, oldpassword, newpassword } = req;
+
+    if (!id || !oldpassword || !newpassword) {
+        return res.status(200).send({ message: "password lama, and password baru harus terisi" });
+    }
+
+    try {
+        // Mulai transaksi
+        await db.$transaction(async (transaction) => {
+            const getuser = await transaction.tbl_user.findUnique({
+                where: { id: id }
+            });
+
+            if (!getuser) {
+                return res.status(404).send({ message: "User not found" });
+            }
+
+            const hashed = getuser.hashed;
+            const isPasswordValid = await checkPassword(oldpassword, hashed);
+
+            if (!isPasswordValid) {
+                return res.status(400).send({ message: "error" });
+            }
+
+            const newHashedPassword = await bcrypt.hash(newpassword, 10);
+
+            await transaction.tbl_user.update({
+                where: { id: id },
+                data: {
+                    hashed: newHashedPassword,
+                    updated_at: new Date()
+                }
+            });
+
+            return res.status(200).send({ message: "success" });
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send({ message: "Internal server error" });
+    }
+}
 const createlog = async (request, res) => {
     const {
         username,
@@ -112,14 +191,17 @@ const login_user = async (request, res) => {
         });
     });
 }
-
-async function checkPassword(password, hashedPassword, res) {
+async function checkPassword(password, hashedPassword) {
+    const passwordMatch = await bcrypt.compare(password, hashedPassword);
+    return passwordMatch;
+}
+/* async function checkPassword(password, hashedPassword, res) {
     const passwordMatch = await bcrypt.compare(password, hashedPassword);
     if (!passwordMatch) {
-        throw new Error("Invalid password");
+        return;
     }
     return true;
-}
+} */
 
 /* async function checkPassword(password, hashedPassword) {
     const passwordMatch = await bcrypt.compare(password, hashedPassword);
@@ -347,6 +429,7 @@ const search = async (request) => {
 
 export default {
     create,
+    gantipassword,
     createlog,
     login_user,
     get,
