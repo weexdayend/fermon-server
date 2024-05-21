@@ -110,14 +110,14 @@ const gantipassword = async (req, res) => {
             });
 
             if (!getuser) {
-                return res.status(404).send({ message: "User not found" });
+                return res.status(200).send({ message: "User not found" });
             }
 
             const hashed = getuser.hashed;
             const isPasswordValid = await checkPassword(oldpassword, hashed);
 
             if (!isPasswordValid) {
-                return res.status(400).send({ message: "error" });
+                return res.status(200).send({ message: "error" });
             }
 
             const newHashedPassword = await bcrypt.hash(newpassword, 10);
