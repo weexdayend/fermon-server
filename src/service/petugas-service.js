@@ -319,27 +319,32 @@ const get = async (request, res) => {
     } = request;
     try {
         const petugas = await db.fact_petugas.findMany({});
+        
+        let data;
+        if (kode === "") {
+            data = petugas;
+        } else {
+            data = petugas
+                .filter(petugas => {
+                    // Adjust this condition based on your JSON structure and filtering logic
+                    // For example, if `wilker` is an array of objects
+                    return petugas.wilker.some(w => w.kode === kode);
+                })
+                .map(petugas => {
+                    return {
+                        // Adjust the fields according to your requirements
+                        id: petugas.id,
+                        nama_petugas: petugas.nama_petugas,
+                        kode: petugas.wilker.find(w => w.kode === kode)?.kode, // or any specific transformation you need
+                        contact: petugas.contact,
+                        contact_wa: petugas.contact_wa,
+                        jabatan: petugas.jabatan,
+                        wilker: petugas.wilker
+                    };
+                });
+        }
 
-        const filteredAndReformattedPetugas = petugas
-            .filter(petugas => {
-                // Adjust this condition based on your JSON structure and filtering logic
-                // For example, if `wilker` is an array of objects
-                return petugas.wilker.some(w => w.kode === kode);
-            })
-            .map(petugas => {
-                return {
-                    // Adjust the fields according to your requirements
-                    id: petugas.id,
-                    nama_petugas: petugas.nama_petugas,
-                    kode: petugas.wilker.find(w => w.kode === kode)?.kode, // or any specific transformation you need
-                    contact: petugas.contact,
-                    contact_wa: petugas.contact_wa,
-                    jabatan: petugas.jabatan,
-                    wilker: petugas.wilker
-                };
-            });
-
-        res.status(200).send(filteredAndReformattedPetugas);
+        res.status(200).send(data);
     } catch (error) {
         res.status(500).send(`${error}`);
     }
