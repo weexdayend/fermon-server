@@ -171,11 +171,7 @@ const login_user = async (request, res) => {
     return db.$transaction(async (db) => {
         const user = await db.tbl_user.findUnique({
             where: {
-                email: username,
-                OR: [
-                    { role: 'ADMIN' },
-                    { role: 'SUPER ADMIN' },
-                ]
+                email: username
             },
         });
 
