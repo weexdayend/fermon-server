@@ -126,7 +126,7 @@ const getall = async (id, res) => {
 } */
 const update = async (request, res) => {
     const {
-        id_user,
+        id,
         kode_petugas,
         nama_petugas,
         contact,
@@ -141,7 +141,7 @@ const update = async (request, res) => {
     } = request;
 
     try {
-        if (!id_user) {
+        if (!id) {
             throw new Error('User ID is required');
         }
 
@@ -151,7 +151,7 @@ const update = async (request, res) => {
         await db.$transaction(async (db) => {
             // Fetch existing user data
             const existingUser = await db.tbl_user.findUnique({
-                where: { id: id_user },
+                where: { id: id },
             });
 
             if (!existingUser) {
@@ -232,7 +232,7 @@ const update = async (request, res) => {
 
             // Update user data
             await db.tbl_user.update({
-                where: { id: id_user },
+                where: { id: id },
                 data: updateDataUser,
             });
 
