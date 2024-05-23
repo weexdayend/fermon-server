@@ -141,41 +141,42 @@ const update = async (request, res) => {
     } = request;
 
     try {
+        if (!id_user) {
+            throw new Error('User ID is required');
+        }
+
         const today = new Date();
         const formattedDate = today.toISOString();
+
         await db.$transaction(async (db) => {
-
-            //ambil data user berdasarkan kode_petugas di tbl_user
+            // Fetch existing user data
             const existingUser = await db.tbl_user.findUnique({
-                where: {
-                    id: id_user
-                }
+                where: { id: id_user },
             });
-
-            let kode_petugas_db = existingUser.kode_petugas;
 
             if (!existingUser) {
                 throw new Error('User not found');
             }
 
-            const existingPetugas = await db.fact_petugas.findUnique({
-                where: {
-                    kode_petugas: kode_petugas_db
-                }
-            });
+            let kode_petugas_db = existingUser.kode_petugas;
 
-            let id_petugas_db = existingPetugas.id;
+            // Fetch existing petugas data
+            const existingPetugas = await db.fact_petugas.findUnique({
+                where: { kode_petugas: kode_petugas_db },
+            });
 
             if (!existingPetugas) {
                 throw new Error('Petugas not found');
             }
 
+            let id_petugas_db = existingPetugas.id;
+
             let updateData = {
-                updated_at: formattedDate
+                updated_at: formattedDate,
             };
 
             let updateDataUser = {
-                updated_at: formattedDate
+                updated_at: formattedDate,
             };
 
             if (kode_petugas) {
@@ -220,41 +221,33 @@ const update = async (request, res) => {
                 updateData.wilker = wilker;
             }
 
-            if (status_user) {
-                updateDataUser.status_user = status_user;
-            }
-
             if (foto) {
                 updateData.foto = foto;
             }
 
-            if (Object.keys(updateData).length <= 1) {
-                throw new Error('Setidaknya satu field harus memiliki nilai untuk melakukan update.');
+            // Ensure there is at least one field to update
+            if (Object.keys(updateData).length <= 1 && Object.keys(updateDataUser).length <= 1) {
+                throw new Error('At least one field must have a value to update.');
             }
 
-            // Lakukan update data user
+            // Update user data
             await db.tbl_user.update({
-                where: {
-                    id: id_user
-                },
-                data: updateDataUser
+                where: { id: id_user },
+                data: updateDataUser,
             });
 
-            // Lakukan update data petugas
+            // Update petugas data
             await db.fact_petugas.update({
-                where: {
-                    id: id_petugas_db
-                },
-                data: updateData
+                where: { id: id_petugas_db },
+                data: updateData,
             });
-
         });
 
-        res.status(200).send({message: "Successfully updated data petugas."});
+        res.status(200).send({ message: "Successfully updated data petugas." });
     } catch (error) {
-        res.status(500).send(`${error}`);
+        res.status(500).send({ message: `${error.message}` });
     }
-}
+};
 const remove = async (id) => {
     // contactId = validate(getContactValidation, contactId);
 
