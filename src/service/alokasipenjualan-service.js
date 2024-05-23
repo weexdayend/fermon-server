@@ -1657,6 +1657,12 @@ const monitoringalokasi = async (request, res) => {
                     currmonth: parseFloat(totals.currmonth.toFixed(3)),
                     mtm: parseFloat(totals.mtm.toFixed(3)),
                 }));
+
+                function parseLocalizedNumber(value) {
+                    // Remove thousand separators and replace the decimal comma with a period
+                    value = value.replace(/\./g, '').replace(',', '.');
+                    return parseFloat(value);
+                }
                 
                 const harga = await db.tbl_alokasi_penjualan.findMany({
                     where: {
@@ -1675,7 +1681,7 @@ const monitoringalokasi = async (request, res) => {
                 })
                 const transformedHarga = harga.map(item => ({
                     kode_produk: item.kode_produk,
-                    besaran: parseFloat(item.besaran),
+                    besaran: parseLocalizedNumber(item.besaran),
                     keterangan: item.keterangan
                 }));
         
