@@ -185,6 +185,7 @@ const update = async (request, res) => {
 
             if (nama_petugas) {
                 updateData.nama_petugas = nama_petugas;
+                updateDataUser.name = nama_petugas;
             }
 
             if (contact) {

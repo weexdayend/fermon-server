@@ -263,7 +263,6 @@ model tbl_gudang {
   kecamatan     String?
   userid        String         @db.Uuid
   status_gudang Boolean?
-  tbl_produsen  tbl_produsen[]
 }
 
 model tbl_kios {
@@ -309,22 +308,6 @@ model fact_petugas {
   @@index([id, kode_petugas, contact, contact_wa], map: "petugas_id_idx")
 }
 
-model tbl_produsen {
-  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at      DateTime
-  updated_at      DateTime?
-  deleted_at      DateTime?
-  kode_produsen   String?
-  nama_produsen   String?
-  id_gudang       String?     @db.Uuid
-  userid          String?     @db.Uuid
-  status_produsen Boolean?
-  tbl_gudang      tbl_gudang? @relation(fields: [id_gudang], references: [id], map: "tbl_produsen_idgudang_fkey")
-  tbl_user        tbl_user?   @relation(fields: [userid], references: [id])
-
-  @@index([id])
-}
-
 model tbl_user {
   id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at   DateTime       @default(now())
@@ -337,7 +320,6 @@ model tbl_user {
   name         String?
   status_user  Boolean?
   kode_petugas String?        @unique
-  tbl_produsen tbl_produsen[]
 
   @@unique([id, email, kode_petugas])
 }
