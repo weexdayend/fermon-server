@@ -130,24 +130,17 @@ const update = async (request, res) => {
         kode_petugas,
         nama_petugas,
         contact,
-        contact_wa,
+        whatsapp,
         jabatan,
         status_petugas,
-        departemen,
         status_kepagawaian,
         email,
-        password,
         role_user,
-        name_user,
         wilker,
-        status_user,
         foto
     } = request;
 
     try {
-        let petugas;
-        let user;
-        let response = {};
         const today = new Date();
         const formattedDate = today.toISOString();
         await db.$transaction(async (db) => {
@@ -180,54 +173,56 @@ const update = async (request, res) => {
             let updateData = {
                 updated_at: formattedDate
             };
+
             let updateDataUser = {
                 updated_at: formattedDate
             };
+
             if (kode_petugas) {
                 updateData.kode_petugas = kode_petugas;
                 updateDataUser.kode_petugas = kode_petugas;
             }
+
             if (nama_petugas) {
                 updateData.nama_petugas = nama_petugas;
             }
+
             if (contact) {
                 updateData.contact = contact;
             }
-            if (contact_wa) {
-                updateData.contact_wa = contact_wa;
+
+            if (whatsapp) {
+                updateData.contact_wa = whatsapp;
             }
+
             if (jabatan) {
                 updateData.jabatan = jabatan;
             }
+
             if (status_petugas) {
                 updateData.status_petugas = status_petugas;
             }
-            if (departemen) {
-                updateData.departemen = departemen;
-            }
+
             if (status_kepagawaian) {
                 updateData.status_kepagawaian = status_kepagawaian;
             }
+
             if (email) {
                 updateDataUser.email = email;
             }
-            if (password) {
-                // Hash password sebelum disimpan
-                const passwordnew = await bcrypt.hash(password, 10);
-                updateDataUser.hashed = passwordnew;
-            }
+
             if (role_user) {
                 updateDataUser.role = role_user;
             }
-            if (name_user) {
-                updateDataUser.name = name_user;
-            }
+
             if (wilker) {
                 updateData.wilker = wilker;
             }
+
             if (status_user) {
                 updateDataUser.status_user = status_user;
             }
+
             if (foto) {
                 updateData.foto = foto;
             }
@@ -237,7 +232,7 @@ const update = async (request, res) => {
             }
 
             // Lakukan update data user
-            user = await db.tbl_user.update({
+            await db.tbl_user.update({
                 where: {
                     id: id_user
                 },
@@ -245,36 +240,16 @@ const update = async (request, res) => {
             });
 
             // Lakukan update data petugas
-            petugas = await db.fact_petugas.update({
+            await db.fact_petugas.update({
                 where: {
                     id: id_petugas_db
                 },
                 data: updateData
             });
 
-            response = {
-                id_user: user.id,
-                kode_petugas: petugas.kode_petugas,
-                nama_petugas: petugas.nama_petugas,
-                contact: petugas.contact || "",
-                contact_wa: petugas.contact_wa || "",
-                jabatan: petugas.jabatan || "",
-                status_petugas: petugas.status_petugas,
-                departemen: petugas.departemen || "",
-                status_kepagawaian: petugas.status_kepagawaian || "",
-                email: user.email || "",
-                password: "", // Password sebaiknya tidak dikembalikan dalam response
-                role_user: user.role || "",
-                name_user: user.name || "",
-                wilker: petugas.wilker || [], // Asumsi bahwa wilker adalah array, silakan sesuaikan jika strukturnya berbeda
-                status_user: user.status_user,
-                foto: petugas.foto || ""
-            };
-
-
         });
 
-        res.status(200).send(response);
+        res.status(200).send({message: "Successfully updated data petugas."});
     } catch (error) {
         res.status(500).send(`${error}`);
     }
