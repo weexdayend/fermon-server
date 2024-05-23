@@ -289,7 +289,7 @@ model tbl_kios {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model fact_petugas {
-  id                 String    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at         DateTime? @db.Timestamp(6)
   updated_at         DateTime? @db.Timestamp(6)
   deleted_at         DateTime? @db.Timestamp(6)
@@ -305,7 +305,7 @@ model fact_petugas {
   foto               String?
 
   @@unique([id, kode_petugas])
-  @@index([id, kode_petugas, contact, contact_wa], map: "petugas_id_idx")
+  @@index([kode_petugas, contact, contact_wa], map: "petugas_id_idx")
 }
 
 model tbl_user {
@@ -321,7 +321,7 @@ model tbl_user {
   status_user  Boolean?
   kode_petugas String?        @unique
 
-  @@unique([id, email, kode_petugas])
+  @@unique([email, kode_petugas])
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
